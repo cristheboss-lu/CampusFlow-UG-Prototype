@@ -1,0 +1,8 @@
+<h2>Ingreso Estudiantes UG</h2>
+{% if error %}<p style="color:red">{{error}}</p>{% endif %}
+<form method="post">
+{% csrf_token %}
+<input name="username" placeholder="Usuario">
+<input name="password" type="password" placeholder="Clave">
+<button>Entrar</button>
+</form>
