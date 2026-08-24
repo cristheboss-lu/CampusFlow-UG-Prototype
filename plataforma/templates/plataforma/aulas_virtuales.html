@@ -1,0 +1,26 @@
+{% extends "plataforma/base.html" %}
+
+{% block titulo %}Aulas Virtuales - Colegio XYZ{% endblock %}
+
+{% block contenido %}
+    <h2>📚 Aulas Virtuales</h2>
+    <p>Accede a tus cursos y materiales de estudio.</p>
+
+    <div class="buttons-grid">
+        {% for curso in cursos %}
+            <a href="{{ curso.url_aula }}" target="_blank" class="btn-grid">
+                {{ curso.icono }}<br>
+                {{ curso.nombre }}<br>
+                <small>Prof. {{ curso.profesor }}</small>
+            </a>
+        {% empty %}
+            <p>No hay cursos disponibles en este momento.</p>
+        {% endfor %}
+    </div>
+
+    {% if not cursos %}
+        <div class="alert alert-danger">
+            ⚠️ No hay aulas virtuales disponibles. Contacta con administración.
+        </div>
+    {% endif %}
+{% endblock %}
