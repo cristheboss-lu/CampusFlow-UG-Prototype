@@ -1,0 +1,34 @@
+{% extends "plataforma/base.html" %}
+
+{% block titulo %}Admisiones - Colegio XYZ{% endblock %}
+
+{% block contenido %}
+    <h2>✏️ Admisiones</h2>
+    <p>Información sobre el proceso de admisión a nuestro colegio.</p>
+
+    <div class="alert alert-success">
+        <h3>✅ Inscripciones Abiertas 2024</h3>
+        <p>Las inscripciones para el nuevo año escolar ya están abiertas.</p>
+    </div>
+
+    <h3>Requisitos:</h3>
+    <ul>
+        <li>Formulario de solicitud completado</li>
+        <li>Certificado de nacimiento</li>
+        <li>Histórico académico</li>
+        <li>Examen de admisión</li>
+    </ul>
+
+    <h3>Próximos Pasos:</h3>
+    <ol>
+        <li>Descargar formulario de solicitud</li>
+        <li>Agendar una entrevista</li>
+        <li>Presentar documentos requeridos</li>
+        <li>Tomar examen de admisión</li>
+        <li>Confirmación de admisión</li>
+    </ol>
+
+    <p style="margin-top: 20px;">
+        <a href="{% url 'contacto' %}" class="btn">Contactar para más información</a>
+    </p>
+{% endblock %}

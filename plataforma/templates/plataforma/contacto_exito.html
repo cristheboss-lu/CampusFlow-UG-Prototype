@@ -1,0 +1,12 @@
+{% extends "plataforma/base.html" %}
+
+{% block titulo %}Mensaje Enviado - Colegio XYZ{% endblock %}
+
+{% block contenido %}
+    <div class="alert alert-success">
+        <h3>✅ ¡Mensaje Enviado Correctamente!</h3>
+        <p>Gracias por tu mensaje. Nos pondremos en contacto pronto.</p>
+    </div>
+
+    <a href="{% url 'index' %}" class="btn">Volver al Inicio</a>
+{% endblock %}

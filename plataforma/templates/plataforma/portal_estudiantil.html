@@ -1,0 +1,33 @@
+{% extends "plataforma/base.html" %}
+
+{% block titulo %}Portal Estudiantil - Colegio XYZ{% endblock %}
+
+{% block contenido %}
+    <h2>👤 Portal Estudiantil</h2>
+    <p>Accede a tu información académica.</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Grado</th>
+                <th>Matrícula</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for estudiante in estudiantes %}
+            <tr>
+                <td>{{ estudiante.nombre }}</td>
+                <td>{{ estudiante.email }}</td>
+                <td>{{ estudiante.grado }}</td>
+                <td>{{ estudiante.numero_matricula }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" style="text-align: center;">No hay estudiantes registrados</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

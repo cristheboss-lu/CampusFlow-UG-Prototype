@@ -1,0 +1,407 @@
+{% extends "plataforma/base.html" %}
+{% load static %}
+
+{% block titulo %}Inicio - Universidad de Guayaquil{% endblock %}
+
+{% block contenido %}
+<!-- Hero Section con 3 imágenes - EFECTO CARRUSEL -->
+<div class="hero-banner" style="position: relative; border-radius: 15px; overflow: hidden; margin: 0 -20px 50px -20px; height: 550px; display: flex; align-items: center; justify-content: center; cursor: pointer; background-size: cover; background-position: center 30%;">
+    
+    <!-- Imagen 1 (principal) -->
+    <div class="hero-img hero-img-1" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-size: cover; background-position: center 30%; background-image: url('{% static 'images/banner.webp' %}'); opacity: 1; transition: opacity 0.8s ease; z-index: 3;"></div>
+    
+    <!-- Imagen 2 -->
+    <div class="hero-img hero-img-2" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-size: cover; background-position: center 30%; background-image: url('{% static 'images/estudiantes.webp' %}'); opacity: 0; transition: opacity 0.8s ease; z-index: 2;"></div>
+    
+    <!-- Imagen 3 -->
+    <div class="hero-img hero-img-3" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-size: cover; background-position: center 30%; background-image: url('{% static 'images/OIP.webp' %}'); opacity: 0; transition: opacity 0.8s ease; z-index: 1;"></div>
+    
+    <!-- Overlay transparente oscuro -->
+    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(26, 84, 144, 0.45); z-index: 5;"></div>
+    
+    <!-- Contenido encima - CENTRADO -->
+    <div style="position: relative; z-index: 10; text-align: center; color: white; width: 100%; padding: 0 20px;">
+        <h1 style="font-size: 3.5rem; font-weight: 800; margin-bottom: 20px; text-shadow: 2px 2px 8px rgba(0,0,0,0.4); letter-spacing: 1px; animation: slideInDown 0.8s ease;">
+            <logo class="jpeg"></logo.jpeg>Universidad de Guayaquil
+        </h1>
+        <p style="font-size: 1.5rem; opacity: 0.95; text-shadow: 1px 1px 4px rgba(0,0,0,0.3); letter-spacing: 0.5px; animation: slideInUp 0.8s ease;">
+            Excelencia académica y desarrollo integral
+        </p>
+    </div>
+    
+    <!-- Indicadores -->
+    <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; z-index: 15;">
+        <span class="hero-indicator hero-indicator-1" style="width: 12px; height: 12px; border-radius: 50%; background: white; cursor: pointer; opacity: 1; transition: 0.3s; border: 2px solid white;"></span>
+        <span class="hero-indicator hero-indicator-2" style="width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,0.5); cursor: pointer; opacity: 0.5; transition: 0.3s;"></span>
+        <span class="hero-indicator hero-indicator-3" style="width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,0.5); cursor: pointer; opacity: 0.5; transition: 0.3s;"></span>
+    </div>
+</div>
+
+<!-- Descripción -->
+<div class="row mb-5">
+    <div class="col-lg-8 mx-auto">
+        <p class="fs-5 text-center mb-4">
+            Somos una institución educativa comprometida con la excelencia académica y 
+            el desarrollo integral de nuestros estudiantes. Ofrecemos programas de calidad 
+            en diversas áreas del conocimiento.
+        </p>
+    </div>
+</div>
+
+<!-- Servicios principales en TARJETAS BONITAS CON EFECTOS -->
+<div class="mb-5">
+    <h2 class="section-title text-center mb-5">Nuestros Servicios</h2>
+    <div class="row g-4">
+        <!-- Aulas Virtuales -->
+        <div class="col-lg-4 col-md-6">
+            <div class="service-card-container">
+                <a href="{% url 'aulas_virtuales' %}" class="service-card text-decoration-none">
+                    <div class="service-image">
+                        <img src="{% static 'images/estudiantes.webp' %}" alt="Aulas Virtuales" class="img-fluid">
+                        <div class="service-overlay">
+                            <i class="fas fa-chalkboard-user"></i>
+                        </div>
+                    </div>
+                    <div class="service-content">
+                        <h5>📚 Aulas Virtuales</h5>
+                        <p>Accede a tus cursos en línea con recursos interactivos y contenido actualizado</p>
+                        <div class="service-link">Ver más →</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Portal Estudiantil -->
+        <div class="col-lg-4 col-md-6">
+            <div class="service-card-container">
+                <a href="{% url 'portal_estudiantil' %}" class="service-card text-decoration-none">
+                    <div class="service-image">
+                        <img src="{% static 'images/OIP.webp' %}" alt="Portal Estudiantil" class="img-fluid">
+                        <div class="service-overlay">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                    </div>
+                    <div class="service-content">
+                        <h5>👤 Portal Estudiantil</h5>
+                        <p>Consulta tu información académica, calificaciones y documentos</p>
+                        <div class="service-link">Ver más →</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Biblioteca -->
+        <div class="col-lg-4 col-md-6">
+            <div class="service-card-container">
+                <a href="{% url 'biblioteca' %}" class="service-card text-decoration-none">
+                    <div class="service-image" style="background: linear-gradient(135deg, #1a5490, #0d3a63);">
+                        <i class="fas fa-book fa-5x" style="color: white; opacity: 0.3;"></i>
+                    </div>
+                    <div class="service-content">
+                        <h5>📖 Biblioteca Digital</h5>
+                        <p>Accede a miles de recursos educativos, libros y materiales de estudio</p>
+                        <div class="service-link">Ver más →</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Admisiones -->
+        <div class="col-lg-4 col-md-6">
+            <div class="service-card-container">
+                <a href="{% url 'admisiones' %}" class="service-card text-decoration-none">
+                    <div class="service-image" style="background: linear-gradient(135deg, #17a2b8, #138496);">
+                        <i class="fas fa-pen-fancy fa-5x" style="color: white; opacity: 0.3;"></i>
+                    </div>
+                    <div class="service-content">
+                        <h5>✏️ Admisiones</h5>
+                        <p>Solicita tu ingreso con los requisitos y proceso de admisión</p>
+                        <div class="service-link">Ver más →</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Contacto -->
+        <div class="col-lg-4 col-md-6">
+            <div class="service-card-container">
+                <a href="{% url 'contacto' %}" class="service-card text-decoration-none">
+                    <div class="service-image" style="background: linear-gradient(135deg, #ffc107, #e0a800);">
+                        <i class="fas fa-envelope fa-5x" style="color: white; opacity: 0.3;"></i>
+                    </div>
+                    <div class="service-content">
+                        <h5>📧 Contacto</h5>
+                        <p>Comunícate con nosotros para resolver tus dudas e inquietudes</p>
+                        <div class="service-link">Ver más →</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Noticias recientes -->
+<div class="mb-5">
+    <h2 class="section-title text-center mb-5">Noticias Recientes</h2>
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="news-card">
+                <div class="news-card-img">
+                    📅
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Inicio del Año Escolar</h5>
+                    <p class="card-text">Las clases del nuevo período académico 2024 inician el próximo lunes con todas las medidas de seguridad.</p>
+                    <small class="text-muted"><i class="far fa-calendar"></i> 22 de agosto de 2026</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="news-card">
+                <div class="news-card-img">
+                    📝
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Inscripciones Abiertas</h5>
+                    <p class="card-text">Las inscripciones para nuevos estudiantes ya están abiertas. ¡No pierdas la oportunidad!</p>
+                    <small class="text-muted"><i class="far fa-calendar"></i> 20 de agosto de 2026</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="news-card">
+                <div class="news-card-img">
+                    💻
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Plataforma Virtual</h5>
+                    <p class="card-text">Nuestra plataforma de aulas virtuales está disponible con acceso 24/7 para todos nuestros estudiantes.</p>
+                    <small class="text-muted"><i class="far fa-calendar"></i> 18 de agosto de 2026</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estadísticas -->
+<div class="mb-5">
+    <h2 class="section-title text-center mb-5">Nuestra Institución</h2>
+    <div class="row g-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-box">
+                <div class="stats-number">5000+</div>
+                <div class="stats-label">Estudiantes Activos</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-box">
+                <div class="stats-number">150+</div>
+                <div class="stats-label">Docentes Especializados</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-box">
+                <div class="stats-number">25+</div>
+                <div class="stats-label">Programas Académicos</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-box">
+                <div class="stats-number">30+</div>
+                <div class="stats-label">Años de Trayectoria</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Call to Action -->
+<div class="alert alert-info text-center mb-5" role="alert">
+    <h4><i class="fas fa-comments"></i> ¿Tienes preguntas?</h4>
+    <p>Nuestro equipo está disponible para ayudarte de lunes a viernes de 8:00 AM a 4:30 PM</p>
+    <a href="{% url 'contacto' %}" class="btn btn-primary btn-lg mt-3">
+        <i class="fas fa-envelope"></i> Contáctanos Ahora
+    </a>
+</div>
+
+<style>
+    /* Animaciones */
+    @keyframes slideInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.15); }
+    }
+
+    /* Estilos para tarjetas de servicios mejoradas */
+    .service-card-container {
+        perspective: 1000px;
+    }
+
+    .service-card {
+        background: white;
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        display: block;
+        height: 100%;
+        position: relative;
+    }
+
+    .service-card:hover {
+        transform: translateY(-15px) rotateX(5deg);
+        box-shadow: 0 20px 40px rgba(26, 84, 144, 0.3);
+    }
+
+    .service-image {
+        position: relative;
+        height: 200px;
+        overflow: hidden;
+        background: linear-gradient(135deg, #1a5490, #0d3a63);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .service-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+    }
+
+    .service-card:hover .service-image img {
+        transform: scale(1.15) rotate(2deg);
+    }
+
+    .service-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(26, 84, 144, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.4s ease;
+    }
+
+    .service-card:hover .service-overlay {
+        opacity: 1;
+    }
+
+    .service-overlay i {
+        color: white;
+        font-size: 3rem;
+        animation: pulse 0.6s ease;
+    }
+
+    .service-content {
+        padding: 25px;
+    }
+
+    .service-content h5 {
+        color: #1a5490;
+        font-weight: 700;
+        margin-bottom: 12px;
+        font-size: 1.1rem;
+        transition: color 0.3s ease;
+    }
+
+    .service-card:hover .service-content h5 {
+        color: #0d3a63;
+    }
+
+    .service-content p {
+        color: #666;
+        font-size: 0.95rem;
+        margin-bottom: 15px;
+        transition: color 0.3s ease;
+    }
+
+    .service-link {
+        color: #1a5490;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-block;
+    }
+
+    .service-card:hover .service-link {
+        color: #0d3a63;
+        transform: translateX(5px);
+    }
+
+    /* Hero banner ancho */
+    .hero-banner {
+        margin-left: calc(-50vw + 50%);
+        margin-right: calc(-50vw + 50%);
+    }
+</style>
+
+<script>
+    // Carrusel automático de imágenes
+    let currentImageIndex = 0;
+    const images = document.querySelectorAll('.hero-img');
+    const indicators = document.querySelectorAll('.hero-indicator');
+
+    function showImage(index) {
+        images.forEach(img => img.style.opacity = '0');
+        indicators.forEach(ind => {
+            ind.style.opacity = '0.5';
+            ind.style.background = 'rgba(255,255,255,0.5)';
+        });
+        
+        images[index].style.opacity = '1';
+        indicators[index].style.opacity = '1';
+        indicators[index].style.background = 'white';
+    }
+
+    function nextImage() {
+        currentImageIndex = (currentImageIndex + 1) % images.length;
+        showImage(currentImageIndex);
+    }
+
+    // Cambiar imagen cada 5 segundos
+    setInterval(nextImage, 5000);
+
+    // Indicadores clickeables
+    indicators.forEach((indicator, index) => {
+        indicator.addEventListener('click', () => {
+            currentImageIndex = index;
+            showImage(currentImageIndex);
+        });
+    });
+
+    // Pausa al pasar mouse
+    document.querySelector('.hero-banner').addEventListener('mouseenter', () => {
+        clearInterval(window.carouselInterval);
+    });
+
+    document.querySelector('.hero-banner').addEventListener('mouseleave', () => {
+        window.carouselInterval = setInterval(nextImage, 5000);
+    });
+</script>
+{% endblock %}

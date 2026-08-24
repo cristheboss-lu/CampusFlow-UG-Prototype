@@ -1,0 +1,36 @@
+{% extends "plataforma/base.html" %}
+
+{% block titulo %}Contacto - Colegio XYZ{% endblock %}
+
+{% block contenido %}
+    <h2>📧 Contacto</h2>
+    <p>Envíanos tu mensaje y nos pondremos en contacto pronto.</p>
+
+    <form method="POST">
+        {% csrf_token %}
+        
+        <label for="nombre">Nombre:</label>
+        <input type="text" id="nombre" name="nombre" required>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required>
+
+        <label for="asunto">Asunto:</label>
+        <input type="text" id="asunto" name="asunto" required>
+
+        <label for="mensaje">Mensaje:</label>
+        <textarea id="mensaje" name="mensaje" required></textarea>
+
+        <button type="submit" class="btn">Enviar Mensaje</button>
+    </form>
+
+    <hr style="margin: 40px 0;">
+
+    <h3>Información de Contacto</h3>
+    <ul>
+        <li><strong>Teléfono:</strong> +593 4 XXXX-XXXX</li>
+        <li><strong>Email:</strong> info@colegio.edu.ec</li>
+        <li><strong>Dirección:</strong> Guayaquil, Ecuador</li>
+        <li><strong>Horario:</strong> Lunes a Viernes, 7:00 AM - 5:00 PM</li>
+    </ul>
+{% endblock %}
