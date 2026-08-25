@@ -1,21 +1,45 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <title>Login</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula Virtual - Login</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#eef2f7;font-family:Arial, sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;}
+.card{width:420px;background:#fff;border-radius:20px;box-shadow:0 15px 40px rgba(0,0,0,.15);overflow:hidden;}
+.top{background:#144171;color:#fff;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;}
+.top b{font-size:13px;letter-spacing:.5px;}
+.top span{font-size:11px;opacity:.9}
+.content{padding:35px 30px;text-align:center;}
+.content h1{color:#144171;margin:0 0 6px 0;font-size:28px;}
+.content p{color:#666;margin:0 0 20px 0;font-size:14px;}
+label{text-align:left;display:block;font-size:14px;margin:15px 0 6px 0;font-weight:bold;color:#333;}
+input{width:100%;padding:12px;border:1px solid #c5c5c5;border-radius:8px;font-size:14px;background:#fbfdff;}
+.btn{width:100%;background:#144171;color:#fff;border:none;padding:13px;border-radius:8px;margin-top:22px;font-size:16px;font-weight:bold;cursor:pointer;}
+.btn:hover{background:#0e345e;}
+.error{background:#fde2e2;color:#a00;padding:10px;border-radius:6px;font-size:13px;margin-bottom:10px;}
+a.link{color:#144171;font-size:13px;text-decoration:none;display:block;margin-top:16px;}
+</style>
 </head>
 <body>
-    <h2>Iniciar Sesión</h2>
-    {% if messages %}
-        {% for message in messages %}
-            <p style="color:red">{{ message }}</p>
-        {% endfor %}
-    {% endif %}
-    <form method="post">
-        {% csrf_token %}
-        <input type="text" name="username" placeholder="Usuario" required><br><br>
-        <input type="password" name="password" placeholder="Contraseña" required><br><br>
-        <button type="submit">Entrar</button>
+<div class="card">
+  <div class="top"><b>UG UNIVERSIDAD DE GUAYAQUIL</b><span>AULA VIRTUAL</span></div>
+  <div class="content">
+    <h1>Iniciar Sesión</h1>
+    <p>Ingresa a tu cuenta para acceder al aula virtual</p>
+    {% if messages %}{% for m in messages %}<div class="error">{{ m }}</div>{% endfor %}{% endif %}
+    <form method="POST">
+      {% csrf_token %}
+      <label>Usuario</label>
+      <input type="text" name="username" placeholder="Ingrese su usuario" required>
+      <label>Contraseña</label>
+      <input type="password" name="password" placeholder="Ingrese su contraseña" required>
+      <button class="btn" type="submit">Iniciar Sesión</button>
     </form>
-    <a href="/">Volver al inicio</a>
+    <a class="link" href="/">¿Olvidaste tu contraseña?</a>
+    <a class="link" href="/" style="margin-top:8px">Volver al inicio</a>
+  </div>
+</div>
 </body>
 </html>
