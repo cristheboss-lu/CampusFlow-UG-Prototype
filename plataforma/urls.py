@@ -1,16 +1,20 @@
 from django.urls import path
 from . import views
-from .views import login_view, logout_view, cursos_view
 
 urlpatterns = [
+    # --- Públicas ---
     path('', views.index, name='index'),
-    path('aulas-virtuales/', views.aulas_virtuales, name='aulas_virtuales'),
     path('portal-estudiantil/', views.portal_estudiantil, name='portal_estudiantil'),
     path('biblioteca/', views.biblioteca, name='biblioteca'),
     path('admisiones/', views.admisiones, name='admisiones'),
     path('contacto/', views.contacto, name='contacto'),
     path('contacto-exito/', views.contacto_exito, name='contacto_exito'),
-    path('login/', login_view, name='login'),
-    path('logout/', logout_view, name='logout'),
-    path('mis-cursos/', cursos_view, name='cursos'),
+
+    # --- Auth ---
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+
+    # --- Área Virtual (protegida) ---
+    path('aulas-virtuales/', views.aulas_virtuales, name='aulas_virtuales'),
+    path('mis-cursos/', views.cursos_view, name='cursos'),
 ]
