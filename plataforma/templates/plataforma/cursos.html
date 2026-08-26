@@ -1,106 +1,93 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mis Cursos - Plataforma Institucional</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <style>
-        *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI', sans-serif}
-        body{background:#f4f6fb;color:#333}
-        .navbar{background:#0a1931;color:white;padding:15px 30px;display:flex;justify-content:space-between;align-items:center}
-        .navbar h2{font-size:20px}
-        .navbar a{color:white;text-decoration:none;margin-left:20px}
-        .container{max-width:1100px;margin:30px auto;padding:0 20px}
-        .welcome{background:linear-gradient(135deg,#004aad,#00c6ff);color:white;padding:30px;border-radius:15px;display:flex;justify-content:space-between;align-items:center}
-        .welcome h1{font-size:28px}
-        .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;margin:25px 0}
-        .stat-card{background:white;padding:20px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.05);text-align:center}
-        .stat-card i{font-size:30px;color:#004aad;margin-bottom:10px}
-        .cursos-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:25px;margin-top:20px}
-        .curso-card{background:white;border-radius:15px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,0.08);transition:0.3s}
-        .curso-card:hover{transform:translateY(-5px)}
-        .curso-header{height:140px;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:white;font-size:50px}
-        .curso-body{padding:20px}
-        .curso-body h3{margin-bottom:8px;color:#0a1931}
-        .curso-body p{color:#666;font-size:14px;margin-bottom:15px}
-        .progress-bar{background:#eee;height:8px;border-radius:10px;overflow:hidden;margin:10px 0}
-        .progress{height:100%;background:#004aad;width:70%}
-        .btn{display:inline-block;background:#004aad;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:14px;margin-top:10px}
-        .btn:hover{background:#00337a}
-    </style>
-</head>
-<body>
-    <div class="navbar">
-        <h2><i class="fas fa-graduation-cap"></i> Plataforma Institucional</h2>
+{% extends "plataforma/base.html" %}
+
+{% block title %}Mis cursos | Universidad de Guayaquil{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+
+    <!-- Bienvenida -->
+    <div class="relative overflow-hidden bg-gradient-to-br from-navy to-navy-light text-white rounded-card p-8 mb-8 flex items-center justify-between">
         <div>
-            <span><i class="fas fa-user"></i> {{ user.username }}</span>
-            <a href="/"><i class="fas fa-home"></i> Inicio</a>
-            <a href="/logout/"><i class="fas fa-sign-out-alt"></i> Salir</a>
+            <h1 class="text-2xl font-semibold mb-1">¡Hola, {{ user.username }}! 👋</h1>
+            <p class="text-white/80 text-sm">Bienvenido a tu portal estudiantil. Continúa aprendiendo.</p>
+        </div>
+        <i class="ti ti-book-2 text-6xl text-white/20 hidden sm:block" aria-hidden="true"></i>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="grid gap-5 sm:grid-cols-3 mb-10">
+        <div class="bg-white rounded-card shadow-sm p-6 text-center">
+            <i class="ti ti-book text-3xl text-navy" aria-hidden="true"></i>
+            <h3 class="text-xl font-semibold text-navy mt-2">3 cursos</h3>
+            <p class="text-sm text-gray-500">Activos</p>
+        </div>
+        <div class="bg-white rounded-card shadow-sm p-6 text-center">
+            <i class="ti ti-circle-check text-3xl text-navy" aria-hidden="true"></i>
+            <h3 class="text-xl font-semibold text-navy mt-2">12</h3>
+            <p class="text-sm text-gray-500">Tareas completadas</p>
+        </div>
+        <div class="bg-white rounded-card shadow-sm p-6 text-center">
+            <i class="ti ti-clock text-3xl text-navy" aria-hidden="true"></i>
+            <h3 class="text-xl font-semibold text-navy mt-2">85%</h3>
+            <p class="text-sm text-gray-500">Progreso general</p>
         </div>
     </div>
 
-    <div class="container">
-        <div class="welcome">
-            <div>
-                <h1>Hola, {{ user.username }}! 👋</h1>
-                <p style="margin-top:5px;opacity:0.9">Bienvenido a tu portal estudiantil. Continúa aprendiendo.</p>
-            </div>
-            <i class="fas fa-book-reader" style="font-size:60px;opacity:0.3"></i>
-        </div>
+    <!-- Mis cursos -->
+    <h2 class="text-xl font-semibold text-navy mb-5">Mis cursos</h2>
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 
-        <div class="stats">
-            <div class="stat-card">
-                <i class="fas fa-book"></i>
-                <h3>3 Cursos</h3>
-                <p>Activos</p>
+        <div class="bg-white rounded-card shadow-sm overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all">
+            <div class="h-32 bg-gradient-to-br from-sky-400 to-cyan-300 flex items-center justify-center">
+                <i class="ti ti-calculator text-white text-4xl" aria-hidden="true"></i>
             </div>
-            <div class="stat-card">
-                <i class="fas fa-check-circle"></i>
-                <h3>12</h3>
-                <p>Tareas completadas</p>
-            </div>
-            <div class="stat-card">
-                <i class="fas fa-clock"></i>
-                <h3>85%</h3>
-                <p>Progreso general</p>
+            <div class="p-5">
+                <h3 class="font-semibold text-navy mb-1">Matemáticas avanzadas</h3>
+                <p class="text-sm text-gray-500 mb-3">Álgebra, cálculo y resolución de problemas. 8 módulos.</p>
+                <div class="w-full bg-gray-100 rounded-full h-2 mb-1">
+                    <div class="bg-navy h-2 rounded-full" style="width:75%"></div>
+                </div>
+                <span class="text-xs text-gray-400">75% completado</span>
+                <a href="#" class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-gold hover:translate-x-1 transition-transform">
+                    Continuar <i class="ti ti-arrow-right" aria-hidden="true"></i>
+                </a>
             </div>
         </div>
 
-        <h2 style="margin:20px 0 10px">Mis Cursos</h2>
-        <div class="cursos-grid">
-            <div class="curso-card">
-                <div class="curso-header" style="background:linear-gradient(135deg,#4facfe,#00f2fe)"><i class="fas fa-calculator"></i></div>
-                <div class="curso-body">
-                    <h3>Matemáticas Avanzadas</h3>
-                    <p>Álgebra, cálculo y resolución de problemas. 8 módulos.</p>
-                    <div class="progress-bar"><div class="progress" style="width:75%"></div></div>
-                    <small>75% completado</small><br>
-                    <a href="#" class="btn">Continuar <i class="fas fa-arrow-right"></i></a>
-                </div>
+        <div class="bg-white rounded-card shadow-sm overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all">
+            <div class="h-32 bg-gradient-to-br from-green-400 to-teal-300 flex items-center justify-center">
+                <i class="ti ti-code text-white text-4xl" aria-hidden="true"></i>
             </div>
-            <div class="curso-card">
-                <div class="curso-header" style="background:linear-gradient(135deg,#43e97b,#38f9d7)"><i class="fas fa-laptop-code"></i></div>
-                <div class="curso-body">
-                    <h3>Informática y Programación</h3>
-                    <p>Python, bases de datos y desarrollo web. 12 módulos.</p>
-                    <div class="progress-bar"><div class="progress" style="width:60%"></div></div>
-                    <small>60% completado</small><br>
-                    <a href="#" class="btn">Continuar <i class="fas fa-arrow-right"></i></a>
+            <div class="p-5">
+                <h3 class="font-semibold text-navy mb-1">Informática y programación</h3>
+                <p class="text-sm text-gray-500 mb-3">Python, bases de datos y desarrollo web. 12 módulos.</p>
+                <div class="w-full bg-gray-100 rounded-full h-2 mb-1">
+                    <div class="bg-navy h-2 rounded-full" style="width:60%"></div>
                 </div>
-            </div>
-            <div class="curso-card">
-                <div class="curso-header" style="background:linear-gradient(135deg,#fa709a,#fee140)"><i class="fas fa-flask"></i></div>
-                <div class="curso-body">
-                    <h3>Ciencias Naturales</h3>
-                    <p>Biología, química y laboratorio virtual. 6 módulos.</p>
-                    <div class="progress-bar"><div class="progress" style="width:90%"></div></div>
-                    <small>90% completado</small><br>
-                    <a href="#" class="btn">Continuar <i class="fas fa-arrow-right"></i></a>
-                </div>
+                <span class="text-xs text-gray-400">60% completado</span>
+                <a href="#" class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-gold hover:translate-x-1 transition-transform">
+                    Continuar <i class="ti ti-arrow-right" aria-hidden="true"></i>
+                </a>
             </div>
         </div>
+
+        <div class="bg-white rounded-card shadow-sm overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all">
+            <div class="h-32 bg-gradient-to-br from-pink-400 to-amber-200 flex items-center justify-center">
+                <i class="ti ti-flask text-white text-4xl" aria-hidden="true"></i>
+            </div>
+            <div class="p-5">
+                <h3 class="font-semibold text-navy mb-1">Ciencias naturales</h3>
+                <p class="text-sm text-gray-500 mb-3">Biología, química y laboratorio virtual. 6 módulos.</p>
+                <div class="w-full bg-gray-100 rounded-full h-2 mb-1">
+                    <div class="bg-navy h-2 rounded-full" style="width:90%"></div>
+                </div>
+                <span class="text-xs text-gray-400">90% completado</span>
+                <a href="#" class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-gold hover:translate-x-1 transition-transform">
+                    Continuar <i class="ti ti-arrow-right" aria-hidden="true"></i>
+                </a>
+            </div>
+        </div>
+
     </div>
-</body>
-          </html>
+</div>
+{% endblock %}
