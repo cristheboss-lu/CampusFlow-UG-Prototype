@@ -200,6 +200,96 @@
 })();
 </script>
 {% endblock %}
+            <h3 class="font-semibold text-navy mb-1">Inicio del año escolar</h3>
+            <p class="text-sm text-gray-500 mb-2">Las clases del período 2024 inician el próximo lunes con todas las medidas de seguridad.</p>
+            <span class="text-xs text-gray-400">22 de agosto de 2026</span>
+        </div>
+        <div class="bg-white rounded-card shadow-sm p-5">
+            <div class="text-3xl mb-3">📝</div>
+            <h3 class="font-semibold text-navy mb-1">Inscripciones abiertas</h3>
+            <p class="text-sm text-gray-500 mb-2">Las inscripciones para nuevos estudiantes ya están abiertas.</p>
+            <span class="text-xs text-gray-400">20 de agosto de 2026</span>
+        </div>
+        <div class="bg-white rounded-card shadow-sm p-5">
+            <div class="text-3xl mb-3">💻</div>
+            <h3 class="font-semibold text-navy mb-1">Plataforma virtual</h3>
+            <p class="text-sm text-gray-500 mb-2">Nuestras aulas virtuales están disponibles 24/7 para todos los estudiantes.</p>
+            <span class="text-xs text-gray-400">18 de agosto de 2026</span>
+        </div>
+    </div>
+</div>
+
+<!-- ============ ESTADÍSTICAS ============ -->
+<div class="mb-14">
+    <h2 class="text-2xl font-semibold text-navy text-center mb-8">Nuestra institución</h2>
+    <div class="grid gap-6 grid-cols-2 md:grid-cols-4">
+        <div class="text-center bg-white rounded-card shadow-sm py-6">
+            <div class="text-3xl font-bold text-navy">5000+</div>
+            <div class="text-sm text-gray-500 mt-1">Estudiantes activos</div>
+        </div>
+        <div class="text-center bg-white rounded-card shadow-sm py-6">
+            <div class="text-3xl font-bold text-navy">150+</div>
+            <div class="text-sm text-gray-500 mt-1">Docentes especializados</div>
+        </div>
+        <div class="text-center bg-white rounded-card shadow-sm py-6">
+            <div class="text-3xl font-bold text-navy">25+</div>
+            <div class="text-sm text-gray-500 mt-1">Programas académicos</div>
+        </div>
+        <div class="text-center bg-white rounded-card shadow-sm py-6">
+            <div class="text-3xl font-bold text-navy">30+</div>
+            <div class="text-sm text-gray-500 mt-1">Años de trayectoria</div>
+        </div>
+    </div>
+</div>
+
+<!-- ============ CTA CONTACTO ============ -->
+<div class="bg-navy rounded-card text-center text-white p-8 mb-6">
+    <h3 class="text-xl font-semibold mb-2 flex items-center justify-center gap-2">
+        <i class="ti ti-message-circle" aria-hidden="true"></i> ¿Tienes preguntas?
+    </h3>
+    <p class="text-white/80 mb-5">Nuestro equipo está disponible de lunes a viernes de 8:00 AM a 4:30 PM</p>
+    <a href="{% url 'contacto' %}" class="inline-flex items-center gap-2 bg-gold hover:bg-gold/90 text-navy-dark font-semibold px-6 py-3 rounded-lg transition-colors">
+        <i class="ti ti-mail" aria-hidden="true"></i> Contáctanos ahora
+    </a>
+</div>
+
+<script>
+(function () {
+    const images = document.querySelectorAll('.hero-img');
+    const dots = document.querySelectorAll('.hero-dot');
+    let current = 0;
+    let interval;
+
+    function showImage(index) {
+        images.forEach(img => { img.style.opacity = '0'; });
+        dots.forEach(d => { d.classList.remove('bg-white'); d.classList.add('bg-white/50'); });
+        images[index].style.opacity = '1';
+        dots[index].classList.remove('bg-white/50');
+        dots[index].classList.add('bg-white');
+    }
+
+    function next() {
+        current = (current + 1) % images.length;
+        showImage(current);
+    }
+
+    function start() { interval = setInterval(next, 5000); }
+    function stop() { clearInterval(interval); }
+
+    dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => { current = index; showImage(current); });
+    });
+
+    const hero = document.querySelector('.hero-img')?.parentElement;
+    if (hero) {
+        hero.addEventListener('mouseenter', stop);
+        hero.addEventListener('mouseleave', start);
+    }
+
+    start();
+})();
+</script>
+{% endblock %}
                     <div class="service-image" style="background: linear-gradient(135deg, #17a2b8, #138496);">
                         <i class="fas fa-pen-fancy fa-5x" style="color: white; opacity: 0.3;"></i>
                     </div>
