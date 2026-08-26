@@ -1,115 +1,163 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block titulo %}Universidad de Guayaquil{% endblock %}</title>
-    
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome para iconos -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        :root {
-            --primary-color: #1a5490;
-            --secondary-color: #0d3a63;
-            --accent-color: #17a2b8;
-            --light-bg: #f8f9fa;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Pelamacho | Universidad de Guayaquil{% endblock %}</title>
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<!-- Fuente Inter -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--light-bg);
-            line-height: 1.6;
-        }
+<!-- Tailwind CSS (CDN para desarrollo; en producción compilar con Tailwind CLI) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  // Configuración de colores institucionales: navy + dorado UG
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          navy: {
+            DEFAULT: '#1B3A6B',
+            light: '#2C5590',
+            dark: '#122748',
+          },
+          gold: {
+            DEFAULT: '#F5A623',
+            light: '#FDF1E0',
+          },
+        },
+        fontFamily: {
+          sans: ['Inter', 'sans-serif'],
+        },
+        borderRadius: {
+          card: '16px',
+        },
+      },
+    },
+  }
+</script>
 
-        /* Navbar mejorada */
-        .navbar {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            padding: 1rem 0;
-        }
+<!-- Iconos Tabler -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 
-        .navbar-brand {
-            font-size: 1.6rem;
-            font-weight: 800;
-            color: white !important;
-            letter-spacing: 0.5px;
-        }
+{% block extra_head %}{% endblock %}
 
-        .nav-link {
-            color: rgba(255,255,255,0.9) !important;
-            transition: all 0.3s ease;
-            margin: 0 5px;
-            font-weight: 500;
-            position: relative;
-        }
+<style>
+  body { font-family: 'Inter', sans-serif; background-color: #F5F5F7; }
+  /* Scrollbar discreto */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-thumb { background: #D3D1C7; border-radius: 10px; }
+</style>
+</head>
+<body class="min-h-screen text-gray-800">
 
-        .nav-link:hover {
-            color: #ffd700 !important;
-        }
+<div class="flex min-h-screen">
 
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 2px;
-            bottom: -5px;
-            left: 50%;
-            background-color: #ffd700;
-            transition: all 0.3s ease;
-            transform: translateX(-50%);
-        }
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="hidden md:flex md:flex-col w-64 bg-navy text-white shrink-0">
+    <div class="flex items-center gap-3 px-6 py-6 border-b border-white/10">
+      <img src="{% static 'images/logo.png' %}" alt="Logo Universidad de Guayaquil" class="w-9 h-9 rounded-lg object-cover">
+      <div>
+        <p class="text-sm font-semibold leading-tight">Universidad de Guayaquil</p>
+        <p class="text-xs text-white/60 leading-tight">Panel {{ user_role|default:"académico" }}</p>
+      </div>
+    </div>
 
-        .nav-link:hover::after {
-            width: 80%;
-        }
+    <nav class="flex-1 px-3 py-4 space-y-1 text-sm">
+      {% block sidebar_links %}
+      <a href="{% url 'panel_principal' %}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'panel_principal' %}bg-white/10 font-medium{% endif %}">
+        <i class="ti ti-home text-lg" aria-hidden="true"></i> Panel principal
+      </a>
+      <a href="{% url 'mis_cursos' %}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'mis_cursos' %}bg-white/10 font-medium{% endif %}">
+        <i class="ti ti-book text-lg" aria-hidden="true"></i> Mis cursos
+      </a>
+      <a href="{% url 'calendario' %}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'calendario' %}bg-white/10 font-medium{% endif %}">
+        <i class="ti ti-calendar text-lg" aria-hidden="true"></i> Calendario
+      </a>
+      <a href="{% url 'mensajes' %}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'mensajes' %}bg-white/10 font-medium{% endif %}">
+        <i class="ti ti-message text-lg" aria-hidden="true"></i> Mensajes
+      </a>
+      <a href="{% url 'biblioteca' %}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'biblioteca' %}bg-white/10 font-medium{% endif %}">
+        <i class="ti ti-book-2 text-lg" aria-hidden="true"></i> Biblioteca
+      </a>
+      {% endblock %}
+    </nav>
 
-        /* Hero Section mejorada */
-        .hero-section {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 80px 20px;
-            text-align: center;
-            border-radius: 15px;
-            margin-bottom: 50px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-        }
+    <div class="px-3 py-4 border-t border-white/10 space-y-1 text-sm">
+      <a href="{% url 'mi_perfil' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors">
+        <i class="ti ti-user text-lg" aria-hidden="true"></i> Mi perfil
+      </a>
+      <a href="{% url 'logout' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors text-white/70">
+        <i class="ti ti-logout text-lg" aria-hidden="true"></i> Cerrar sesión
+      </a>
+    </div>
+  </aside>
 
-        .hero-section h1 {
-            font-size: 3rem;
-            font-weight: 800;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
+  <!-- ============ CONTENIDO ============ -->
+  <div class="flex-1 flex flex-col min-w-0">
 
-        .hero-section p {
-            font-size: 1.3rem;
-            opacity: 0.95;
-        }
+    <!-- Topbar -->
+    <header class="flex items-center justify-between bg-white border-b border-gray-200 px-4 md:px-8 py-3 sticky top-0 z-10">
+      <button class="md:hidden text-gray-600" aria-label="Abrir menú" id="mobile-menu-btn">
+        <i class="ti ti-menu-2 text-xl" aria-hidden="true"></i>
+      </button>
+      <div class="flex-1 max-w-md hidden sm:block">
+        <div class="relative">
+          <i class="ti ti-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" aria-hidden="true"></i>
+          <input type="text" placeholder="Buscar en la plataforma..."
+                 class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-light/30">
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <button class="relative text-gray-500" aria-label="Notificaciones">
+          <i class="ti ti-bell text-lg" aria-hidden="true"></i>
+        </button>
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-full bg-gold-light flex items-center justify-center text-navy text-xs font-semibold">
+            {{ request.user.first_name|slice:":1"|upper }}{{ request.user.last_name|slice:":1"|upper }}
+          </div>
+          <span class="hidden sm:block text-sm font-medium">{{ request.user.get_full_name|default:request.user.username }}</span>
+        </div>
+      </div>
+    </header>
 
-        /* Tarjetas de servicios mejoradas */
-        .service-card {
-            background: white;
-            border: none;
-            border-radius: 15px;
-            padding: 35px 20px;
-            text-align: center;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            text-decoration: none;
-            color: var(--primary-color);
-            display: block;
-            height: 100%;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            position: relative;
+    <!-- Mensajes de Django (toasts) -->
+    {% if messages %}
+    <div class="fixed bottom-4 right-4 z-50 space-y-2" id="toast-container">
+      {% for message in messages %}
+      <div class="flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg text-sm
+                  {% if message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200
+                  {% elif message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200
+                  {% else %}bg-navy-light/10 text-navy border border-navy-light/30{% endif %}">
+        <i class="ti {% if message.tags == 'success' %}ti-circle-check{% elif message.tags == 'error' %}ti-alert-circle{% else %}ti-info-circle{% endif %} text-base" aria-hidden="true"></i>
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    <script>
+      setTimeout(() => { document.getElementById('toast-container')?.remove(); }, 5000);
+    </script>
+    {% endif %}
+
+    <!-- Contenido de cada página -->
+    <main class="flex-1 p-4 md:p-8">
+      {% block content %}{% endblock %}
+    </main>
+
+  </div>
+</div>
+
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>
             overflow: hidden;
         }
 
