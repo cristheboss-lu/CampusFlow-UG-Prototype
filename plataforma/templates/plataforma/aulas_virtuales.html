@@ -1,26 +1,35 @@
 {% extends "plataforma/base.html" %}
 
-{% block titulo %}Aulas Virtuales - Colegio XYZ{% endblock %}
+{% block title %}Aulas Virtuales | Universidad de Guayaquil{% endblock %}
 
-{% block contenido %}
-    <h2>📚 Aulas Virtuales</h2>
-    <p>Accede a tus cursos y materiales de estudio.</p>
+{% block content %}
+<div class="max-w-5xl mx-auto">
 
-    <div class="buttons-grid">
+    <div class="flex items-center gap-3 mb-2">
+        <i class="ti ti-chalkboard text-2xl text-navy" aria-hidden="true"></i>
+        <h1 class="text-2xl font-semibold text-navy">Aulas virtuales</h1>
+    </div>
+    <p class="text-gray-500 mb-8">Accede a tus cursos y materiales de estudio.</p>
+
+    {% if cursos %}
+    <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {% for curso in cursos %}
-            <a href="{{ curso.url_aula }}" target="_blank" class="btn-grid">
-                {{ curso.icono }}<br>
-                {{ curso.nombre }}<br>
-                <small>Prof. {{ curso.profesor }}</small>
-            </a>
+        <a href="{{ curso.url_aula }}" target="_blank" rel="noopener"
+           class="group bg-white rounded-card shadow-sm hover:shadow-xl transition-all hover:-translate-y-1 p-6 text-center">
+            <div class="text-4xl mb-3">{{ curso.icono }}</div>
+            <h3 class="font-semibold text-navy mb-1">{{ curso.nombre }}</h3>
+            <p class="text-sm text-gray-500">Prof. {{ curso.profesor }}</p>
+        </a>
         {% empty %}
-            <p>No hay cursos disponibles en este momento.</p>
+        <p class="text-gray-500 col-span-full text-center py-10">No hay cursos disponibles en este momento.</p>
         {% endfor %}
     </div>
-
-    {% if not cursos %}
-        <div class="alert alert-danger">
-            ⚠️ No hay aulas virtuales disponibles. Contacta con administración.
-        </div>
+    {% else %}
+    <div class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-800 rounded-card p-5">
+        <i class="ti ti-alert-triangle text-xl mt-0.5" aria-hidden="true"></i>
+        <p class="text-sm">No hay aulas virtuales disponibles. Contacta con administración.</p>
+    </div>
     {% endif %}
+
+</div>
 {% endblock %}
