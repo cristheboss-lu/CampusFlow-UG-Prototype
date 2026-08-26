@@ -1,218 +1,91 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mi Aula Virtual</title>
-<style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, Helvetica, sans-serif; background: #f5f6f8; color: #1c1c1c; }
+{% extends "plataforma/base.html" %}
 
-    /* ===== TOPBAR ===== */
-    .topbar {
-        background: #1F4E78; color: #fff; height: 56px;
-        display: flex; align-items: center; justify-content: space-between;
-        padding: 0 20px; position: sticky; top: 0; z-index: 20;
-    }
-    .topbar-left { display: flex; align-items: center; gap: 14px; }
-    .topbar-left .brand { font-size: 16px; font-weight: bold; letter-spacing: 0.3px; }
-    .topbar-left .brand span { font-weight: normal; opacity: 0.85; }
-    .topbar-right { display: flex; align-items: center; gap: 18px; font-size: 13px; }
-    .topbar-right a { color: #fff; text-decoration: none; }
-    .avatar {
-        width: 30px; height: 30px; border-radius: 50%; background: #16375a;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 13px; font-weight: bold; border: 1px solid rgba(255,255,255,0.3);
-    }
+{% block title %}Panel principal | Universidad de Guayaquil{% endblock %}
 
-    /* ===== LAYOUT ===== */
-    .layout { display: flex; min-height: calc(100vh - 56px); }
+{% block content %}
+<div class="max-w-5xl mx-auto">
 
-    /* ===== SIDEBAR ===== */
-    .sidebar {
-        width: 220px; background: #ffffff; border-right: 1px solid #e2e4e8;
-        padding: 18px 0; flex-shrink: 0;
-    }
-    .sidebar a {
-        display: flex; align-items: center; gap: 10px;
-        padding: 10px 20px; color: #444; text-decoration: none; font-size: 14px;
-        border-left: 3px solid transparent;
-    }
-    .sidebar a.active { background: #eef3f8; border-left-color: #1F4E78; color: #1F4E78; font-weight: bold; }
-    .sidebar a:hover:not(.active) { background: #f7f8fa; }
-    .sidebar .section-label {
-        font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
-        color: #9aa0a8; padding: 16px 20px 6px; font-weight: bold;
-    }
+    <h1 class="text-2xl font-semibold text-navy mb-1">Panel principal</h1>
+    <p class="text-gray-500 mb-8">Bienvenido/a de vuelta, {{ request.user.first_name }}</p>
 
-    /* ===== MAIN ===== */
-    .main { flex: 1; padding: 26px 32px 60px; max-width: 1100px; }
-
-    .page-title { font-size: 22px; margin-bottom: 4px; }
-    .page-subtitle { font-size: 13px; color: #6b7280; margin-bottom: 24px; }
-
-    /* Stat cards */
-    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 14px; margin-bottom: 30px; }
-    .stat-card {
-        background: #fff; border: 1px solid #e2e4e8; border-radius: 6px;
-        padding: 16px 18px;
-    }
-    .stat-card .num { font-size: 26px; font-weight: bold; color: #1F4E78; }
-    .stat-card .label { font-size: 12px; color: #6b7280; margin-top: 2px; }
-
-    /* Section heading */
-    .section-heading {
-        display: flex; align-items: center; justify-content: space-between;
-        margin: 32px 0 14px;
-    }
-    .section-heading h2 { font-size: 16px; }
-    .section-heading .count { font-size: 12px; color: #9aa0a8; }
-
-    /* Course cards (grid like Moodle "My courses") */
-    .courses-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
-    .course-card {
-        background: #fff; border: 1px solid #e2e4e8; border-radius: 6px; overflow: hidden;
-    }
-    .course-banner {
-        height: 8px; background: #1F4E78;
-    }
-    .course-body { padding: 16px; }
-    .course-code { font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.4px; }
-    .course-name { font-size: 15px; font-weight: bold; margin: 4px 0 10px; color: #1c1c1c; }
-    .course-meta { font-size: 12px; color: #6b7280; margin-bottom: 12px; }
-    .progress-track { height: 6px; background: #edeff2; border-radius: 4px; overflow: hidden; }
-    .progress-fill { height: 100%; background: #1F4E78; }
-    .progress-label { font-size: 11px; color: #6b7280; margin-top: 6px; }
-
-    /* Timeline (tasks) */
-    .task-list { background: #fff; border: 1px solid #e2e4e8; border-radius: 6px; }
-    .task-row {
-        display: flex; align-items: center; gap: 14px;
-        padding: 14px 18px; border-bottom: 1px solid #eef0f2;
-    }
-    .task-row:last-child { border-bottom: none; }
-    .task-date {
-        width: 54px; text-align: center; flex-shrink: 0;
-    }
-    .task-date .d { font-size: 18px; font-weight: bold; color: #1F4E78; line-height: 1; }
-    .task-date .m { font-size: 10px; text-transform: uppercase; color: #9aa0a8; }
-    .task-info { flex: 1; }
-    .task-title { font-size: 14px; font-weight: bold; }
-    .task-course { font-size: 12px; color: #6b7280; margin-top: 2px; }
-    .badge {
-        font-size: 11px; font-weight: bold; padding: 3px 10px; border-radius: 20px;
-        white-space: nowrap;
-    }
-    .badge-Pendiente { background: #fdf1de; color: #94660c; }
-    .badge-Entregado { background: #e2f3e6; color: #1b7a3d; }
-    .badge-Calificado { background: #e3ecf7; color: #1F4E78; }
-    .badge-Atrasado { background: #fbe4e4; color: #a3221f; }
-
-    /* Empty state */
-    .empty-state {
-        background: #fff; border: 1px dashed #d7dbe0; border-radius: 6px;
-        padding: 36px 20px; text-align: center; color: #6b7280; font-size: 14px;
-    }
-
-    @media (max-width: 800px) {
-        .sidebar { display: none; }
-        .main { padding: 20px; }
-    }
-</style>
-</head>
-<body>
-
-<div class="topbar">
-    <div class="topbar-left">
-        <span class="brand">UG <span>| Aula Virtual</span></span>
+    <!-- Estadísticas -->
+    <div class="grid gap-5 sm:grid-cols-2 mb-10">
+        <div class="bg-white rounded-card shadow-sm p-6">
+            <div class="text-3xl font-bold text-navy">{{ matriculas|length }}</div>
+            <div class="text-sm text-gray-500 mt-1">Cursos matriculados</div>
+        </div>
+        <div class="bg-white rounded-card shadow-sm p-6">
+            <div class="text-3xl font-bold text-navy">{{ tareas_con_estado|length }}</div>
+            <div class="text-sm text-gray-500 mt-1">Tareas totales</div>
+        </div>
     </div>
-    <div class="topbar-right">
-        <span>{{ request.user.first_name }} {{ request.user.last_name }}</span>
-        <div class="avatar">{{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }}</div>
-        <a href="{% url 'logout' %}">Cerrar sesión</a>
+
+    <!-- Mis cursos -->
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-navy">Mis cursos</h2>
+        <span class="text-xs text-gray-400">{{ matriculas|length }} curso(s)</span>
     </div>
+
+    {% if matriculas %}
+    <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 mb-10">
+        {% for m in matriculas %}
+        <div class="bg-white rounded-card shadow-sm overflow-hidden">
+            <div class="h-1.5 bg-navy"></div>
+            <div class="p-5">
+                <div class="text-xs text-gray-400 uppercase tracking-wide">{{ m.materia.codigo }}</div>
+                <h3 class="font-semibold text-navy my-1">{{ m.materia.nombre }}</h3>
+                <p class="text-xs text-gray-500 mb-3">Período {{ m.periodo.nombre }} · {{ m.estado }}</p>
+                <div class="w-full bg-gray-100 rounded-full h-1.5">
+                    <div class="bg-navy h-1.5 rounded-full" style="width: {{ m.asistencia }}%;"></div>
+                </div>
+                <div class="text-xs text-gray-400 mt-1.5">Asistencia: {{ m.asistencia }}%</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="border border-dashed border-gray-300 rounded-card p-9 text-center text-sm text-gray-500 mb-10">
+        Todavía no tienes cursos matriculados. Cuando tu institución te matricule, aparecerán aquí.
+    </div>
+    {% endif %}
+
+    <!-- Próximas entregas -->
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-navy">Próximas entregas</h2>
+        <span class="text-xs text-gray-400">{{ tareas_con_estado|length }} tarea(s)</span>
+    </div>
+
+    {% if tareas_con_estado %}
+    <div class="bg-white rounded-card shadow-sm divide-y divide-gray-100">
+        {% for item in tareas_con_estado %}
+        <div class="flex items-center gap-4 px-5 py-4">
+            <div class="w-12 text-center shrink-0">
+                <div class="text-lg font-bold text-navy leading-none">{{ item.tarea.fecha_entrega|date:"d" }}</div>
+                <div class="text-[10px] uppercase text-gray-400">{{ item.tarea.fecha_entrega|date:"M" }}</div>
+            </div>
+            <div class="flex-1">
+                <div class="text-sm font-semibold text-gray-800">{{ item.tarea.titulo }}</div>
+                <div class="text-xs text-gray-500 mt-0.5">{{ item.tarea.materia.codigo }} — {{ item.tarea.materia.nombre }}</div>
+            </div>
+            {% if item.estado == "Pendiente" %}
+            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-amber-50 text-amber-700 whitespace-nowrap">{{ item.estado }}</span>
+            {% elif item.estado == "Entregado" %}
+            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-green-50 text-green-700 whitespace-nowrap">{{ item.estado }}</span>
+            {% elif item.estado == "Calificado" %}
+            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-blue-50 text-navy whitespace-nowrap">{{ item.estado }}</span>
+            {% elif item.estado == "Atrasado" %}
+            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-red-50 text-red-700 whitespace-nowrap">{{ item.estado }}</span>
+            {% else %}
+            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-gray-100 text-gray-600 whitespace-nowrap">{{ item.estado }}</span>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="border border-dashed border-gray-300 rounded-card p-9 text-center text-sm text-gray-500">
+        No tienes tareas pendientes por ahora.
+    </div>
+    {% endif %}
+
 </div>
-
-<div class="layout">
-    <div class="sidebar">
-        <a href="{% url 'dashboard_estudiante' %}" class="active">🏠 Panel principal</a>
-        <a href="#">📚 Mis cursos</a>
-        <a href="#">📅 Calendario</a>
-        <a href="#">✉️ Mensajes</a>
-        <a href="{% url 'biblioteca' %}">📖 Biblioteca</a>
-
-        <div class="section-label">Cuenta</div>
-        <a href="#">👤 Mi perfil</a>
-        <a href="{% url 'index' %}">← Volver al sitio</a>
-    </div>
-
-    <div class="main">
-        <div class="page-title">Panel principal</div>
-        <div class="page-subtitle">Bienvenido/a de vuelta, {{ request.user.first_name }}</div>
-
-        <div class="stats-row">
-            <div class="stat-card">
-                <div class="num">{{ matriculas|length }}</div>
-                <div class="label">Cursos matriculados</div>
-            </div>
-            <div class="stat-card">
-                <div class="num">{{ tareas_con_estado|length }}</div>
-                <div class="label">Tareas totales</div>
-            </div>
-        </div>
-
-        <div class="section-heading">
-            <h2>Mis cursos</h2>
-            <span class="count">{{ matriculas|length }} curso(s)</span>
-        </div>
-
-        {% if matriculas %}
-        <div class="courses-grid">
-            {% for m in matriculas %}
-            <div class="course-card">
-                <div class="course-banner"></div>
-                <div class="course-body">
-                    <div class="course-code">{{ m.materia.codigo }}</div>
-                    <div class="course-name">{{ m.materia.nombre }}</div>
-                    <div class="course-meta">Período {{ m.periodo.nombre }} · {{ m.estado }}</div>
-                    <div class="progress-track">
-                        <div class="progress-fill" style="width: {{ m.asistencia }}%;"></div>
-                    </div>
-                    <div class="progress-label">Asistencia: {{ m.asistencia }}%</div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="empty-state">Todavía no tienes cursos matriculados. Cuando tu institución te matricule, aparecerán aquí.</div>
-        {% endif %}
-
-        <div class="section-heading">
-            <h2>Próximas entregas</h2>
-            <span class="count">{{ tareas_con_estado|length }} tarea(s)</span>
-        </div>
-
-        {% if tareas_con_estado %}
-        <div class="task-list">
-            {% for item in tareas_con_estado %}
-            <div class="task-row">
-                <div class="task-date">
-                    <div class="d">{{ item.tarea.fecha_entrega|date:"d" }}</div>
-                    <div class="m">{{ item.tarea.fecha_entrega|date:"M" }}</div>
-                </div>
-                <div class="task-info">
-                    <div class="task-title">{{ item.tarea.titulo }}</div>
-                    <div class="task-course">{{ item.tarea.materia.codigo }} — {{ item.tarea.materia.nombre }}</div>
-                </div>
-                <span class="badge badge-{{ item.estado }}">{{ item.estado }}</span>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="empty-state">No tienes tareas pendientes por ahora.</div>
-        {% endif %}
-    </div>
-</div>
-
-</body>
-</html>
+{% endblock %}
