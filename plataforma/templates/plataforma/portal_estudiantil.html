@@ -18,16 +18,16 @@
                     <tr>
                         <th class="text-left px-5 py-3 font-medium">Nombre</th>
                         <th class="text-left px-5 py-3 font-medium">Email</th>
-                        <th class="text-left px-5 py-3 font-medium">Grado</th>
+                        <th class="text-left px-5 py-3 font-medium">Carrera</th>
                         <th class="text-left px-5 py-3 font-medium">Matrícula</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     {% for estudiante in estudiantes %}
                     <tr class="hover:bg-gray-50">
-                        <td class="px-5 py-3 text-gray-800">{{ estudiante.nombre }}</td>
-                        <td class="px-5 py-3 text-gray-600">{{ estudiante.email }}</td>
-                        <td class="px-5 py-3 text-gray-600">{{ estudiante.grado }}</td>
+                        <td class="px-5 py-3 text-gray-800">{{ estudiante.user.get_full_name }}</td>
+                        <td class="px-5 py-3 text-gray-600">{{ estudiante.user.email }}</td>
+                        <td class="px-5 py-3 text-gray-600">{{ estudiante.carrera.nombre }}</td>
                         <td class="px-5 py-3 text-gray-600">{{ estudiante.numero_matricula }}</td>
                     </tr>
                     {% empty %}
