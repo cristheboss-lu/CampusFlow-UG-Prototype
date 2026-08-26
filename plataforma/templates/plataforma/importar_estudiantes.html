@@ -1,0 +1,122 @@
+{% extends "plataforma/base.html" %}
+{% load static %}
+
+{% block titulo %}Importar Estudiantes - Universidad de Guayaquil{% endblock %}
+
+{% block contenido %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">📥 Importar Estudiantes desde Excel</h4>
+                </div>
+                <div class="card-body p-5">
+                    
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <div class="alert alert-info mb-4">
+                        <h5>📋 Formato del Excel:</h5>
+                        <p class="mb-0">Tu archivo Excel debe tener estas columnas (en este orden):</p>
+                        <ol class="mt-2 mb-0">
+                            <li><strong>Nombre</strong> - Nombre del estudiante</li>
+                            <li><strong>Apellido</strong> - Apellido del estudiante</li>
+                            <li><strong>Email</strong> - Correo electrónico</li>
+                            <li><strong>Cédula</strong> - Número de cédula</li>
+                            <li><strong>Número Matrícula</strong> - Código de matrícula</li>
+                            <li><strong>Carrera ID</strong> - ID de la carrera (puedes ver IDs abajo)</li>
+                        </ol>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        ⚠️ <strong>Importante:</strong> La contraseña temporal será <code>Temporal123!</code> para todos los usuarios importados.
+                    </div>
+
+                    <div class="alert alert-success">
+                        ℹ️ <strong>IDs de Carreras disponibles:</strong>
+                        <div class="mt-2">
+                            {% for carrera in carreras %}
+                                <span class="badge bg-primary">{{ carrera.id }}: {{ carrera.nombre }}</span>
+                            {% empty %}
+                                <p class="text-muted">No hay carreras registradas aún</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label for="archivo_excel" class="form-label fw-bold">Selecciona tu archivo Excel:</label>
+                            <input type="file" class="form-control form-control-lg" id="archivo_excel" name="archivo_excel" 
+                                   accept=".xlsx,.xls" required>
+                            <small class="text-muted">Solo se aceptan archivos .xlsx o .xls</small>
+                        </div>
+
+                        <button type="submit" class="btn btn-success btn-lg w-100">
+                            <i class="fas fa-upload"></i> Importar Estudiantes
+                        </button>
+                    </form>
+
+                    <hr class="my-4">
+
+                    <h5>📝 Ejemplo de Excel:</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Apellido</th>
+                                    <th>Email</th>
+                                    <th>Cédula</th>
+                                    <th>Nº Matrícula</th>
+                                    <th>Carrera ID</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Juan</td>
+                                    <td>Pérez</td>
+                                    <td>juan.perez@gmail.com</td>
+                                    <td>0912345678</td>
+                                    <td>UG-2024-001</td>
+                                    <td>1</td>
+                                </tr>
+                                <tr>
+                                    <td>María</td>
+                                    <td>García</td>
+                                    <td>maria.garcia@gmail.com</td>
+                                    <td>0987654321</td>
+                                    <td>UG-2024-002</td>
+                                    <td>2</td>
+                                </tr>
+                                <tr>
+                                    <td>Carlos</td>
+                                    <td>López</td>
+                                    <td>carlos.lopez@gmail.com</td>
+                                    <td>0956789123</td>
+                                    <td>UG-2024-003</td>
+                                    <td>1</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <a href="{% url 'index' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver al inicio
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
