@@ -21,8 +21,9 @@ def aulas_virtuales(request):
     return redirect('login')
 
 def portal_estudiantil(request):
-    """Portal estudiantil"""
-    return render(request, 'plataforma/portal_estudiantil.html')
+    """Portal estudiantil - lista de estudiantes con su carrera"""
+    estudiantes = PerfilEstudiante.objects.select_related('user', 'carrera').filter(activo=True)
+    return render(request, 'plataforma/portal_estudiante.html', {'estudiantes': estudiantes})
 
 def biblioteca(request):
     """Biblioteca digital"""
@@ -101,96 +102,179 @@ def dashboard_estudiante(request):
             'estado': entrega.estado if entrega else 'Pendiente',
         })
 
-    return render(request, 'plataforma/dashboard_estudiante.html', {
+    return render(request, 'plataforma/panel_estudiante.html', {
         'matriculas': matriculas,
         'tareas_con_estado': tareas_con_estado,
     })
 
 
-# ===== IMPORTAR ESTUDIANTES DESDE EXCEL =====
+# ===== IMPORTAR DATOS DESDE EXCEL (multi-entidad) =====
+
+def _importar_estudiantes_desde_excel(ws):
+    """Procesa un Excel de estudiantes. Columnas: Nombre, Apellido, Email, Cédula, Nº Matrícula, Carrera ID"""
+    password_hash = make_password('Temporal123!')
+    carreras_dict = {c.id: c for c in Carrera.objects.all()}
+    usernames_existentes = set(User.objects.values_list('username', flat=True))
+
+    usuarios_a_crear = []
+    filas_validas = []
+    errores = []
+    usernames_en_lote = set()
+
+    for fila_num, fila in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
+        try:
+            nombre, apellido, email, cedula, numero_matricula, carrera_id = fila[0:6]
+
+            if not all([nombre, apellido, email, cedula, numero_matricula]):
+                errores.append(f"Fila {fila_num}: Faltan datos obligatorios")
+                continue
+
+            username = str(email).split('@')[0]
+
+            if username in usernames_existentes or username in usernames_en_lote:
+                errores.append(f"Fila {fila_num}: El usuario {username} ya existe")
+                continue
+
+            carrera = carreras_dict.get(int(carrera_id))
+            if not carrera:
+                errores.append(f"Fila {fila_num}: La carrera con ID {carrera_id} no existe")
+                continue
+
+            usernames_en_lote.add(username)
+
+            usuarios_a_crear.append(User(
+                username=username, email=email,
+                first_name=nombre, last_name=apellido,
+                password=password_hash
+            ))
+            filas_validas.append((username, cedula, numero_matricula, carrera))
+
+        except Exception as e:
+            errores.append(f"Fila {fila_num}: {str(e)}")
+
+    User.objects.bulk_create(usuarios_a_crear)
+
+    usuarios_creados = {
+        u.username: u for u in User.objects.filter(username__in=[f[0] for f in filas_validas])
+    }
+
+    perfiles_a_crear = []
+    for username, cedula, numero_matricula, carrera in filas_validas:
+        usuario_obj = usuarios_creados.get(username)
+        if usuario_obj:
+            perfiles_a_crear.append(PerfilEstudiante(
+                user=usuario_obj, carrera=carrera,
+                cedula=str(cedula), numero_matricula=str(numero_matricula)
+            ))
+
+    PerfilEstudiante.objects.bulk_create(perfiles_a_crear)
+    return len(perfiles_a_crear), errores
+
+
+def _importar_carreras_desde_excel(ws):
+    """Procesa un Excel de carreras. Columnas: Nombre, Código, Descripción, Créditos totales"""
+    codigos_existentes = set(Carrera.objects.values_list('codigo', flat=True))
+    carreras_a_crear = []
+    errores = []
+    codigos_en_lote = set()
+
+    for fila_num, fila in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
+        try:
+            nombre, codigo = fila[0], fila[1]
+            descripcion = fila[2] if len(fila) > 2 and fila[2] else ''
+            creditos_totales = fila[3] if len(fila) > 3 and fila[3] else 120
+
+            if not all([nombre, codigo]):
+                errores.append(f"Fila {fila_num}: Faltan datos obligatorios")
+                continue
+
+            if codigo in codigos_existentes or codigo in codigos_en_lote:
+                errores.append(f"Fila {fila_num}: El código de carrera {codigo} ya existe")
+                continue
+
+            codigos_en_lote.add(codigo)
+            carreras_a_crear.append(Carrera(
+                nombre=nombre, codigo=codigo,
+                descripcion=descripcion, creditos_totales=int(creditos_totales)
+            ))
+
+        except Exception as e:
+            errores.append(f"Fila {fila_num}: {str(e)}")
+
+    Carrera.objects.bulk_create(carreras_a_crear)
+    return len(carreras_a_crear), errores
+
+
+def _importar_materias_desde_excel(ws):
+    """Procesa un Excel de materias. Columnas: Nombre, Código, Carrera ID, Créditos, Profesor"""
+    carreras_dict = {c.id: c for c in Carrera.objects.all()}
+    codigos_existentes = set(Materia.objects.values_list('codigo', flat=True))
+    materias_a_crear = []
+    errores = []
+    codigos_en_lote = set()
+
+    for fila_num, fila in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
+        try:
+            nombre, codigo, carrera_id = fila[0], fila[1], fila[2]
+            creditos = fila[3] if len(fila) > 3 and fila[3] else 4
+            profesor = fila[4] if len(fila) > 4 and fila[4] else ''
+
+            if not all([nombre, codigo, carrera_id]):
+                errores.append(f"Fila {fila_num}: Faltan datos obligatorios")
+                continue
+
+            if codigo in codigos_existentes or codigo in codigos_en_lote:
+                errores.append(f"Fila {fila_num}: El código de materia {codigo} ya existe")
+                continue
+
+            carrera = carreras_dict.get(int(carrera_id))
+            if not carrera:
+                errores.append(f"Fila {fila_num}: La carrera con ID {carrera_id} no existe")
+                continue
+
+            codigos_en_lote.add(codigo)
+            materias_a_crear.append(Materia(
+                nombre=nombre, codigo=codigo, carrera=carrera,
+                creditos=int(creditos), profesor=profesor
+            ))
+
+        except Exception as e:
+            errores.append(f"Fila {fila_num}: {str(e)}")
+
+    Materia.objects.bulk_create(materias_a_crear)
+    return len(materias_a_crear), errores
+
 
 @staff_member_required
 def importar_estudiantes(request):
-    """Importar estudiantes desde Excel (optimizado con bulk_create)"""
+    """Importación masiva de datos (Estudiantes, Carreras o Materias) desde Excel"""
     if request.method == 'POST' and request.FILES.get('archivo_excel'):
         archivo = request.FILES['archivo_excel']
+        tipo = request.POST.get('tipo_importacion', 'estudiantes')
 
         try:
             wb = load_workbook(archivo)
             ws = wb.active
 
-            password_hash = make_password('Temporal123!')
+            if tipo == 'estudiantes':
+                contador, errores = _importar_estudiantes_desde_excel(ws)
+                etiqueta = 'estudiantes'
+            elif tipo == 'carreras':
+                contador, errores = _importar_carreras_desde_excel(ws)
+                etiqueta = 'carreras'
+            elif tipo == 'materias':
+                contador, errores = _importar_materias_desde_excel(ws)
+                etiqueta = 'materias'
+            elif tipo == 'docentes':
+                # Aún no existe un modelo de Docente/PerfilDocente en el sistema.
+                messages.error(request, "❌ La importación de docentes todavía no está disponible: falta crear el modelo correspondiente.")
+                return redirect('importar_estudiantes')
+            else:
+                messages.error(request, "❌ Tipo de importación no reconocido")
+                return redirect('importar_estudiantes')
 
-            carreras_dict = {c.id: c for c in Carrera.objects.all()}
-            usernames_existentes = set(User.objects.values_list('username', flat=True))
-
-            usuarios_a_crear = []
-            filas_validas = []
-            errores = []
-            usernames_en_lote = set()
-
-            for fila_num, fila in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
-                try:
-                    nombre = fila[0]
-                    apellido = fila[1]
-                    email = fila[2]
-                    cedula = fila[3]
-                    numero_matricula = fila[4]
-                    carrera_id = fila[5]
-
-                    if not all([nombre, apellido, email, cedula, numero_matricula]):
-                        errores.append(f"Fila {fila_num}: Faltan datos obligatorios")
-                        continue
-
-                    username = str(email).split('@')[0]
-
-                    if username in usernames_existentes or username in usernames_en_lote:
-                        errores.append(f"Fila {fila_num}: El usuario {username} ya existe")
-                        continue
-
-                    carrera = carreras_dict.get(int(carrera_id))
-                    if not carrera:
-                        errores.append(f"Fila {fila_num}: La carrera con ID {carrera_id} no existe")
-                        continue
-
-                    usernames_en_lote.add(username)
-
-                    usuario = User(
-                        username=username,
-                        email=email,
-                        first_name=nombre,
-                        last_name=apellido,
-                        password=password_hash
-                    )
-                    usuarios_a_crear.append(usuario)
-                    filas_validas.append((username, cedula, numero_matricula, carrera))
-
-                except Exception as e:
-                    errores.append(f"Fila {fila_num}: {str(e)}")
-
-            User.objects.bulk_create(usuarios_a_crear)
-
-            usuarios_creados = {
-                u.username: u for u in User.objects.filter(username__in=[f[0] for f in filas_validas])
-            }
-
-            perfiles_a_crear = []
-            for username, cedula, numero_matricula, carrera in filas_validas:
-                usuario_obj = usuarios_creados.get(username)
-                if usuario_obj:
-                    perfiles_a_crear.append(PerfilEstudiante(
-                        user=usuario_obj,
-                        carrera=carrera,
-                        cedula=str(cedula),
-                        numero_matricula=str(numero_matricula)
-                    ))
-
-            PerfilEstudiante.objects.bulk_create(perfiles_a_crear)
-
-            contador_creados = len(perfiles_a_crear)
-
-            if contador_creados > 0:
-                messages.success(request, f"✅ {contador_creados} estudiantes importados correctamente")
+            if contador > 0:
+                messages.success(request, f"✅ {contador} {etiqueta} importados correctamente")
 
             if errores:
                 for error in errores[:10]:
