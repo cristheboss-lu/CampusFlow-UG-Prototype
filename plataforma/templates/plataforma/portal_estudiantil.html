@@ -1,33 +1,44 @@
 {% extends "plataforma/base.html" %}
 
-{% block titulo %}Portal Estudiantil - Colegio XYZ{% endblock %}
+{% block title %}Portal estudiantil | Universidad de Guayaquil{% endblock %}
 
-{% block contenido %}
-    <h2>👤 Portal Estudiantil</h2>
-    <p>Accede a tu información académica.</p>
+{% block content %}
+<div class="max-w-4xl mx-auto">
 
-    <table>
-        <thead>
-            <tr>
-                <th>Nombre</th>
-                <th>Email</th>
-                <th>Grado</th>
-                <th>Matrícula</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for estudiante in estudiantes %}
-            <tr>
-                <td>{{ estudiante.nombre }}</td>
-                <td>{{ estudiante.email }}</td>
-                <td>{{ estudiante.grado }}</td>
-                <td>{{ estudiante.numero_matricula }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="4" style="text-align: center;">No hay estudiantes registrados</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="flex items-center gap-3 mb-2">
+        <i class="ti ti-user-circle text-2xl text-navy" aria-hidden="true"></i>
+        <h1 class="text-2xl font-semibold text-navy">Portal estudiantil</h1>
+    </div>
+    <p class="text-gray-500 mb-8">Accede a tu información académica.</p>
+
+    <div class="bg-white rounded-card shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
+                    <tr>
+                        <th class="text-left px-5 py-3 font-medium">Nombre</th>
+                        <th class="text-left px-5 py-3 font-medium">Email</th>
+                        <th class="text-left px-5 py-3 font-medium">Grado</th>
+                        <th class="text-left px-5 py-3 font-medium">Matrícula</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for estudiante in estudiantes %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-5 py-3 text-gray-800">{{ estudiante.nombre }}</td>
+                        <td class="px-5 py-3 text-gray-600">{{ estudiante.email }}</td>
+                        <td class="px-5 py-3 text-gray-600">{{ estudiante.grado }}</td>
+                        <td class="px-5 py-3 text-gray-600">{{ estudiante.numero_matricula }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center px-5 py-8 text-gray-400">No hay estudiantes registrados</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
 {% endblock %}
