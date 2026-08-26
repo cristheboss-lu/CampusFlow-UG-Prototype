@@ -20,9 +20,7 @@ ALLOWED_HOSTS = ['*']
 
 # Definición de aplicaciones
 INSTALLED_APPS = [
-    'unfold',
-    'unfold.contrib.filters',
-    'unfold.contrib.forms',
+    'jazzmin',
     
     'django.contrib.admin',
     'django.contrib.auth',
@@ -116,11 +114,62 @@ DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 # ===== CORREO ELECTRÓNICO =====
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# ===== INTERFAZ ADMIN UNFOLD =====
-UNFOLD = {
-    "SITE_HEADER": "Universidad de Guayaquil",
-    "SITE_TITLE": "Portal Administrativo",
-    "INDEX_TITLE": "Sistema de Gestión Académica",
+# ===== CONFIGURACIÓN JAZZMIN =====
+JAZZMIN_SETTINGS = {
+    "site_header": "Universidad de Guayaquil",
+    "site_title": "Portal Administrativo",
+    "index_title": "Sistema de Gestión Académica",
+    "welcome_sign": "Bienvenido al Panel de Administración",
+    "copyright": "Universidad de Guayaquil 2026",
+    "search_model": "auth.User",
+    "user_avatar": None,
+    "show_sidebar": True,
+    "navigation_expanded": False,
+    "hide_apps": [],
+    "hide_models": [],
+    "order_with_respect_to": ["auth", "plataforma"],
+    "custom_links": {
+        "plataforma": [{
+            "name": "Ver Sitio",
+            "url": "/",
+            "icon": "fas fa-eye",
+        }]
+    },
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+        "plataforma.Carrera": "fas fa-graduation-cap",
+        "plataforma.Materia": "fas fa-book",
+        "plataforma.Periodo": "fas fa-calendar",
+        "plataforma.Matricula": "fas fa-clipboard-list",
+        "plataforma.Calificacion": "fas fa-star",
+        "plataforma.PerfilEstudiante": "fas fa-id-card",
+        "plataforma.Tarea": "fas fa-tasks",
+        "plataforma.EntregaTarea": "fas fa-file-upload",
+        "plataforma.Certificado": "fas fa-certificate",
+        "plataforma.BibliotecaDigital": "fas fa-book-open",
+        "plataforma.Mensaje": "fas fa-envelope",
+    },
+    "default_icon_parents": "fas fa-chevron-down",
+    "default_icon_children": "fas fa-arrow-right",
+    "use_google_fonts_cdn": True,
+    "show_ui_builder": False,
+    "changeform_format": "vertical_tabs",
+    "changeform_format_overrides": {
+        "auth.user": "collapsible",
+        "auth.group": "vertical_tabs",
+    },
+}
+
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small": False,
+    "footer_small": False,
+    "body_small": False,
+    "sign_in_centered": False,
+    "dark_mode_theme": "darkly",
+    "theme": "flatly",
+    "admin_panels_css": "background:#222;color:#fff",
 }
 
 # ===== LLAVE PRIMARIA POR DEFECTO =====
