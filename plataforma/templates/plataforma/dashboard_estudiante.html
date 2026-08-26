@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mi Aula Virtual</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f0f4f8; margin: 0; }
+        header { background: #1F4E78; color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
+        header h1 { margin: 0; font-size: 22px; }
+        header a { color: white; text-decoration: none; background: rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 5px; }
+        .contenedor { max-width: 900px; margin: 30px auto; padding: 0 20px; }
+        .materia { background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+        .materia h3 { color: #1F4E78; margin-top: 0; }
+        .tarea { border-left: 4px solid #1F4E78; padding: 10px 15px; margin: 10px 0; background: #f9fafb; }
+        .estado { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+        .estado-Pendiente { background: #fff3cd; color: #856404; }
+        .estado-Entregado { background: #d4edda; color: #155724; }
+        .estado-Calificado { background: #cce5ff; color: #004085; }
+        .estado-Atrasado { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🎓 Bienvenido/a, {{ request.user.first_name }}</h1>
+        <a href="{% url 'logout' %}">Cerrar sesión</a>
+    </header>
+
+    <div class="contenedor">
+        <h2>Mis Materias</h2>
+        {% for m in matriculas %}
+            <div class="materia">
+                <h3>{{ m.materia.codigo }} - {{ m.materia.nombre }}</h3>
+                <p>Período: {{ m.periodo.nombre }} | Estado: {{ m.estado }}</p>
+            </div>
+        {% empty %}
+            <p>No tienes materias matriculadas todavía.</p>
+        {% endfor %}
+
+        <h2>Mis Tareas</h2>
+        {% for item in tareas_con_estado %}
+            <div class="tarea">
+                <strong>{{ item.tarea.materia.codigo }}</strong> — {{ item.tarea.titulo }}<br>
+                Entrega: {{ item.tarea.fecha_entrega }}
+                <span class="estado estado-{{ item.estado }}">{{ item.estado }}</span>
+            </div>
+        {% empty %}
+            <p>No tienes tareas asignadas todavía.</p>
+        {% endfor %}
+    </div>
+</body>
+</html>
