@@ -1,11 +1,110 @@
-<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Aula Virtual - Login</title>
-<style>*{box-sizing:border-box}body{margin:0;background:#eef2f7;font-family:Arial,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh}.card{width:420px;background:#fff;border-radius:20px;box-shadow:0 15px 40px rgba(0,0,0,.15);overflow:hidden}.top{background:#144171;color:#fff;padding:18px 22px;display:flex;justify-content:space-between;align-items:center}.top b{font-size:13px}.top span{font-size:11px;opacity:.9}.content{padding:35px 30px;text-align:center}.content h1{color:#144171;margin:0 0 6px;font-size:28px}.content p{color:#666;margin:0 0 20px;font-size:14px}label{text-align:left;display:block;font-size:14px;margin:15px 0 6px;font-weight:bold;color:#333}input{width:100%;padding:12px;border:1px solid #c5c5c5;border-radius:8px;font-size:14px;background:#fbfdff}.btn{width:100%;background:#144171;color:#fff;border:none;padding:13px;border-radius:8px;margin-top:22px;font-size:16px;font-weight:bold;cursor:pointer}.btn:hover{background:#0e345e}.error{background:#fde2e2;color:#a00;padding:10px;border-radius:6px;font-size:13px;margin-bottom:10px}</style></head>
-<body><div class="card"><div class="top"><b>UG UNIVERSIDAD DE GUAYAQUIL</b><span>AULA VIRTUAL</span></div>
-<div class="content"><h1>Iniciar Sesión</h1><p>Ingresa a tu cuenta para acceder al aula virtual</p>
-{% if messages %}{% for m in messages %}<div class="error">{{m}}</div>{% endfor %}{% endif %}
-<form method="POST">{% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
-<label>Usuario</label><input type="text" name="username" placeholder="Ingrese su usuario" required>
-<label>Contraseña</label><input type="password" name="password" placeholder="Ingrese su contraseña" required>
-<button class="btn" type="submit">Iniciar Sesión</button></form>
-<a href="/" style="display:block;margin-top:16px;color:#144171;font-size:13px;text-decoration:none">Volver al inicio</a>
-</div></div></body></html>
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iniciar sesión | Universidad de Guayaquil</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          navy: { DEFAULT: '#1B3A6B', light: '#2C5590', dark: '#122748' },
+          gold: { DEFAULT: '#F5A623', light: '#FDF1E0' },
+        },
+        fontFamily: { sans: ['Inter', 'sans-serif'] },
+      },
+    },
+  }
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+
+<style>
+  body { font-family: 'Inter', sans-serif; }
+</style>
+</head>
+<body class="min-h-screen bg-gray-50">
+
+<div class="min-h-screen flex flex-col md:flex-row">
+
+  <!-- Panel izquierdo: imagen institucional -->
+  <div class="relative md:w-1/2 h-56 md:h-auto bg-gradient-to-br from-navy to-navy-light flex flex-col justify-center px-8 md:px-16 overflow-hidden">
+    <img src="{% static 'images/banner.webp' %}" alt="Campus Universidad de Guayaquil"
+         class="absolute inset-0 w-full h-full object-cover opacity-30">
+    <div class="relative z-10">
+      <div class="flex items-center gap-2 mb-4">
+        <img src="{% static 'images/logo.png' %}" alt="Logo UG" class="w-8 h-8">
+        <span class="text-gold text-xs font-semibold tracking-wide">UNIVERSIDAD DE GUAYAQUIL</span>
+      </div>
+      <h1 class="text-white text-3xl md:text-4xl font-semibold leading-tight">Aula virtual</h1>
+      <p class="text-white/70 text-sm mt-2">Sabiduría · Ciencia · Trabajo</p>
+    </div>
+  </div>
+
+  <!-- Panel derecho: formulario -->
+  <div class="flex-1 flex items-center justify-center px-6 py-10">
+    <div class="w-full max-w-sm">
+
+      <div class="text-center mb-8">
+        <div class="w-12 h-12 rounded-full bg-gold-light mx-auto mb-3 flex items-center justify-center">
+          <i class="ti ti-school text-2xl text-navy" aria-hidden="true"></i>
+        </div>
+        <h2 class="text-navy text-xl font-semibold">Iniciar sesión</h2>
+        <p class="text-gray-500 text-sm mt-1">Ingresa a tu cuenta para acceder al aula virtual</p>
+      </div>
+
+      {% if form.errors %}
+      <div class="mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
+        <i class="ti ti-alert-circle" aria-hidden="true"></i>
+        Usuario o contraseña incorrectos.
+      </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+
+        <label for="id_username" class="block text-sm text-gray-600 mb-1">Usuario</label>
+        <div class="relative mb-4">
+          <i class="ti ti-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true"></i>
+          <input type="text" name="username" id="id_username" placeholder="Ingrese su usuario" required
+                 class="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-navy-light/30">
+        </div>
+
+        <label for="id_password" class="block text-sm text-gray-600 mb-1">Contraseña</label>
+        <div class="relative mb-2">
+          <i class="ti ti-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true"></i>
+          <input type="password" name="password" id="id_password" placeholder="Ingrese su contraseña" required
+                 class="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-navy-light/30">
+        </div>
+
+        <div class="flex items-center justify-between mb-6 text-sm">
+          <label class="flex items-center gap-2 text-gray-600">
+            <input type="checkbox" name="remember" class="rounded border-gray-300 text-navy focus:ring-navy-light">
+            Recordarme
+          </label>
+          <a href="{% url 'password_reset' %}" class="text-gold hover:underline">¿Olvidaste tu contraseña?</a>
+        </div>
+
+        <button type="submit"
+                class="w-full bg-navy hover:bg-navy-dark text-white text-sm font-medium py-2.5 rounded-lg transition-colors">
+          Iniciar sesión
+        </button>
+      </form>
+
+      <p class="text-center text-sm text-gray-500 mt-6">
+        <a href="{% url 'index' %}" class="text-navy hover:underline">← Volver al inicio</a>
+      </p>
+
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
