@@ -8,6 +8,7 @@ django-cloudinary-storage==0.3.0
 django-jazzmin==3.0.1
 gunicorn==26.1.0
 idna==3.19
+psycopg2-binary==2.9.12
 requests==2.34.2
 six==1.17.0
 sqlparse==0.6.0
