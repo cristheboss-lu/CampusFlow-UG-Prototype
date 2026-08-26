@@ -1,20 +1,32 @@
 {% extends "plataforma/base.html" %}
 
-{% block titulo %}Biblioteca - Colegio XYZ{% endblock %}
+{% block title %}Biblioteca | Universidad de Guayaquil{% endblock %}
 
-{% block contenido %}
-    <h2>📖 Biblioteca Digital</h2>
-    <p>Accede a nuestro catálogo de libros y recursos educativos.</p>
+{% block content %}
+<div class="max-w-3xl mx-auto">
 
-    <div class="alert alert-danger">
-        <p>🔧 Sección en construcción. Pronto disponible.</p>
+    <div class="flex items-center gap-3 mb-2">
+        <i class="ti ti-books text-2xl text-navy" aria-hidden="true"></i>
+        <h1 class="text-2xl font-semibold text-navy">Biblioteca digital</h1>
+    </div>
+    <p class="text-gray-500 mb-8">Accede a nuestro catálogo de libros y recursos educativos.</p>
+
+    <div class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-800 rounded-card p-5 mb-8">
+        <i class="ti ti-tool text-xl mt-0.5" aria-hidden="true"></i>
+        <p class="text-sm">Sección en construcción. Pronto disponible.</p>
     </div>
 
-    <h3>Recursos Disponibles:</h3>
-    <ul style="margin-top: 20px;">
-        <li>📕 Libros de texto</li>
-        <li>📰 Periódicos y revistas</li>
-        <li>🎥 Videos educativos</li>
-        <li>🔬 Recursos científicos</li>
-    </ul>
+    <div class="bg-white rounded-card shadow-sm p-6">
+        <h2 class="font-semibold text-navy mb-4 flex items-center gap-2">
+            <i class="ti ti-list text-lg" aria-hidden="true"></i> Recursos disponibles
+        </h2>
+        <ul class="space-y-2 text-sm text-gray-600">
+            <li class="flex items-center gap-2"><i class="ti ti-book text-navy-light" aria-hidden="true"></i> Libros de texto</li>
+            <li class="flex items-center gap-2"><i class="ti ti-news text-navy-light" aria-hidden="true"></i> Periódicos y revistas</li>
+            <li class="flex items-center gap-2"><i class="ti ti-video text-navy-light" aria-hidden="true"></i> Videos educativos</li>
+            <li class="flex items-center gap-2"><i class="ti ti-flask text-navy-light" aria-hidden="true"></i> Recursos científicos</li>
+        </ul>
+    </div>
+
+</div>
 {% endblock %}
