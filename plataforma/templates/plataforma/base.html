@@ -68,21 +68,17 @@
 
     <nav class="flex-1 px-3 py-4 space-y-1 text-sm">
       {% block sidebar_links %}
-      <a href="{% url 'panel_principal' %}"
-         class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'panel_principal' %}bg-white/10 font-medium{% endif %}">
+      <a href="{% url 'dashboard_estudiante' %}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'dashboard_estudiante' %}bg-white/10 font-medium{% endif %}">
         <i class="ti ti-home text-lg" aria-hidden="true"></i> Panel principal
       </a>
-      <a href="{% url 'mis_cursos' %}"
-         class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'mis_cursos' %}bg-white/10 font-medium{% endif %}">
-        <i class="ti ti-book text-lg" aria-hidden="true"></i> Mis cursos
+      <a href="{% url 'aulas_virtuales' %}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'aulas_virtuales' %}bg-white/10 font-medium{% endif %}">
+        <i class="ti ti-book text-lg" aria-hidden="true"></i> Aulas virtuales
       </a>
-      <a href="{% url 'calendario' %}"
-         class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'calendario' %}bg-white/10 font-medium{% endif %}">
-        <i class="ti ti-calendar text-lg" aria-hidden="true"></i> Calendario
-      </a>
-      <a href="{% url 'mensajes' %}"
-         class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'mensajes' %}bg-white/10 font-medium{% endif %}">
-        <i class="ti ti-message text-lg" aria-hidden="true"></i> Mensajes
+      <a href="{% url 'portal_estudiantil' %}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'portal_estudiantil' %}bg-white/10 font-medium{% endif %}">
+        <i class="ti ti-user-circle text-lg" aria-hidden="true"></i> Portal estudiantil
       </a>
       <a href="{% url 'biblioteca' %}"
          class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'biblioteca' %}bg-white/10 font-medium{% endif %}">
@@ -92,9 +88,6 @@
     </nav>
 
     <div class="px-3 py-4 border-t border-white/10 space-y-1 text-sm">
-      <a href="{% url 'mi_perfil' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors">
-        <i class="ti ti-user text-lg" aria-hidden="true"></i> Mi perfil
-      </a>
       <a href="{% url 'logout' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors text-white/70">
         <i class="ti ti-logout text-lg" aria-hidden="true"></i> Cerrar sesión
       </a>
@@ -110,6 +103,54 @@
         <i class="ti ti-menu-2 text-xl" aria-hidden="true"></i>
       </button>
       <div class="flex-1 max-w-md hidden sm:block">
+        <div class="relative">
+          <i class="ti ti-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" aria-hidden="true"></i>
+          <input type="text" placeholder="Buscar en la plataforma..."
+                 class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-light/30">
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <button class="relative text-gray-500" aria-label="Notificaciones">
+          <i class="ti ti-bell text-lg" aria-hidden="true"></i>
+        </button>
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-full bg-gold-light flex items-center justify-center text-navy text-xs font-semibold">
+            {{ request.user.first_name|slice:":1"|upper }}{{ request.user.last_name|slice:":1"|upper }}
+          </div>
+          <span class="hidden sm:block text-sm font-medium">{{ request.user.get_full_name|default:request.user.username }}</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Mensajes de Django (toasts) -->
+    {% if messages %}
+    <div class="fixed bottom-4 right-4 z-50 space-y-2" id="toast-container">
+      {% for message in messages %}
+      <div class="flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg text-sm
+                  {% if message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200
+                  {% elif message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200
+                  {% else %}bg-navy-light/10 text-navy border border-navy-light/30{% endif %}">
+        <i class="ti {% if message.tags == 'success' %}ti-circle-check{% elif message.tags == 'error' %}ti-alert-circle{% else %}ti-info-circle{% endif %} text-base" aria-hidden="true"></i>
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    <script>
+      setTimeout(() => { document.getElementById('toast-container')?.remove(); }, 5000);
+    </script>
+    {% endif %}
+
+    <!-- Contenido de cada página -->
+    <main class="flex-1 p-4 md:p-8">
+      {% block content %}{% endblock %}
+    </main>
+
+  </div>
+</div>
+
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>
         <div class="relative">
           <i class="ti ti-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" aria-hidden="true"></i>
           <input type="text" placeholder="Buscar en la plataforma..."
