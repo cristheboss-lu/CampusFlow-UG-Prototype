@@ -1,5 +1,5 @@
 """
-Django settings for config project - Render Production Ready
+Configuración de Django para el proyecto config - Listo para Render
 """
 
 from pathlib import Path
@@ -7,18 +7,18 @@ import os
 import dj_database_url
 import cloudinary
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# Construir rutas dentro del proyecto
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
+# ADVERTENCIA DE SEGURIDAD: mantén la SECRET_KEY en secreto
 SECRET_KEY = 'django-insecure-!y)9ou^1oahibb7bb=dohnlx6#%qgj=pbbg1guw(u^7nv3=n8j'
 
-# Para desarrollo True, en Render lo pondremos en False automático
+# Para desarrollo True, en Render se pone en False automáticamente
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['*']
 
-# Application definition
+# Definición de aplicaciones
 INSTALLED_APPS = [
     'unfold',
     'unfold.contrib.filters',
@@ -66,7 +66,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# ===== DATABASE =====
+# ===== BASE DE DATOS =====
 # Usa PostgreSQL en Render, SQLite en desarrollo local
 if os.environ.get('DATABASE_URL'):
     DATABASES = {
@@ -77,7 +77,7 @@ if os.environ.get('DATABASE_URL'):
         )
     }
 else:
-    # Local development
+    # Desarrollo local
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -85,7 +85,7 @@ else:
         }
     }
 
-# Password validation
+# ===== VALIDACIÓN DE CONTRASEÑAS =====
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
@@ -93,13 +93,13 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
 ]
 
-# Internationalization
+# ===== INTERNACIONALIZACIÓN =====
 LANGUAGE_CODE = 'es-es'
 TIME_ZONE = 'America/Guayaquil'
 USE_I18N = True
 USE_TZ = True
 
-# ===== STATIC FILES =====
+# ===== ARCHIVOS ESTÁTICOS =====
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'plataforma' / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
@@ -113,42 +113,15 @@ cloudinary.config(
 )
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
-# ===== EMAIL =====
+# ===== CORREO ELECTRÓNICO =====
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# ===== UNFOLD ADMIN INTERFACE =====
+# ===== INTERFAZ ADMIN UNFOLD =====
 UNFOLD = {
     "SITE_HEADER": "Universidad de Guayaquil",
     "SITE_TITLE": "Portal Administrativo",
-    "INDEX_TITLE": "Bienvenido al Sistema de Gestión Académica",
-    "SITE_ICON": lambda request: "https://via.placeholder.com/32",
-    "THEME": "dark",
-    "COLORS": {
-        "primary": {
-            "50": "#f0f9ff",
-            "100": "#e0f2fe",
-            "200": "#bae6fd",
-            "300": "#7dd3fc",
-            "400": "#38bdf8",
-            "500": "#0ea5e9",
-            "600": "#0284c7",
-            "700": "#0369a1",
-            "800": "#075985",
-            "900": "#0c3d66",
-        },
-    },
-    "SIDEBAR": {
-        "show_search": True,
-        "show_navigation": True,
-        "navigation_expand_all": False,
-        "show_home_icon": True,
-    },
-    "TABS": {
-        "default": {
-            "permission": lambda request: request.user.is_staff,
-        },
-    },
+    "INDEX_TITLE": "Sistema de Gestión Académica",
 }
 
-# ===== DEFAULT PRIMARY KEY =====
+# ===== LLAVE PRIMARIA POR DEFECTO =====
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
