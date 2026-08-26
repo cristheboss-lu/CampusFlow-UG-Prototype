@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.contrib.auth.models import User
 from openpyxl import load_workbook
 from .models import (
-    Curso, Estudiante, Mensaje, PerfilEstudiante, Carrera
+    Materia, Mensaje, PerfilEstudiante, Carrera
 )
 
 def index(request):
@@ -13,7 +14,7 @@ def index(request):
 
 def aulas_virtuales(request):
     """Aulas virtuales"""
-    cursos = Curso.objects.all()
+    cursos = Materia.objects.all()
     return render(request, 'plataforma/aulas_virtuales.html', {'cursos': cursos})
 
 def portal_estudiantil(request):
@@ -52,7 +53,7 @@ def contacto_exito(request):
     """Página de éxito del contacto"""
     return render(request, 'plataforma/contacto_exito.html')
 
-@login_required
+@staff_member_required
 def importar_estudiantes(request):
     """Importar estudiantes desde Excel"""
     if request.method == 'POST' and request.FILES.get('archivo_excel'):
