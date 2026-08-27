@@ -59,6 +59,21 @@ class PerfilEstudiante(models.Model):
     class Meta:
         verbose_name_plural = "Perfiles de Estudiante"
 
+    
+    class PerfilDocente(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil_docente')
+    carrera = models.ForeignKey(Carrera, on_delete=models.CASCADE, related_name='docentes')
+    cedula = models.CharField(max_length=20, unique=True)
+    titulo_academico = models.CharField(max_length=100, blank=True)
+    fecha_ingreso = models.DateField(auto_now_add=True)
+    activo = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.user.get_full_name()} - {self.titulo_academico}"
+
+    class Meta:
+        verbose_name_plural = "Perfiles de Docente"
+
 
 # ===== ACADÉMICO =====
 class Matricula(models.Model):
