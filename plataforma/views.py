@@ -27,7 +27,7 @@ def portal_estudiantil(request):
 
 def biblioteca(request):
     """Biblioteca digital"""
-    return render(request, 'plataforma/biblioteca.html')
+    return render(request, 'plataforma/portal_estudiante.html', {'estudiantes': estudiantes})
 
 def admisiones(request):
     """Admisiones"""
