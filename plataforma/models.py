@@ -59,8 +59,8 @@ class PerfilEstudiante(models.Model):
     class Meta:
         verbose_name_plural = "Perfiles de Estudiante"
 
-    
-    class PerfilDocente(models.Model):
+
+class PerfilDocente(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil_docente')
     carrera = models.ForeignKey(Carrera, on_delete=models.CASCADE, related_name='docentes')
     cedula = models.CharField(max_length=20, unique=True)
