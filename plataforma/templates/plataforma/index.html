@@ -1,168 +1,189 @@
-{% extends "plataforma/base.html" %}
+{% extends "plataforma/base_publico.html" %}
 {% load static %}
 
 {% block title %}Inicio | Universidad de Guayaquil{% endblock %}
 
 {% block content %}
-<!-- ============ HERO / CARRUSEL ============ -->
-<div class="relative rounded-card overflow-hidden mb-10 h-[420px] md:h-[500px] flex items-center justify-center">
+
+<!-- ============ HERO / CARRUSEL (ancho completo) ============ -->
+<section class="relative h-[480px] md:h-[600px] flex items-center justify-center overflow-hidden">
 
     <div class="hero-img absolute inset-0 bg-cover bg-center transition-opacity duration-700 z-30" style="background-image:url('{% static 'images/banner.webp' %}'); opacity:1;"></div>
     <div class="hero-img absolute inset-0 bg-cover bg-center transition-opacity duration-700 z-20" style="background-image:url('{% static 'images/estudiantes.webp' %}'); opacity:0;"></div>
     <div class="hero-img absolute inset-0 bg-cover bg-center transition-opacity duration-700 z-10" style="background-image:url('{% static 'images/OIP.webp' %}'); opacity:0;"></div>
 
-    <!-- Overlay navy -->
-    <div class="absolute inset-0 bg-navy/60 z-40"></div>
+    <div class="absolute inset-0 bg-navy/55 z-40"></div>
 
-    <!-- Texto -->
-    <div class="relative z-50 text-center text-white px-4">
+    <div class="relative z-50 text-center text-white px-4 max-w-3xl">
         <h1 class="text-3xl md:text-5xl font-bold tracking-tight mb-3">Universidad de Guayaquil</h1>
-        <p class="text-base md:text-xl text-white/90">Excelencia académica y desarrollo integral</p>
+        <p class="text-base md:text-xl text-white/90 mb-8">Excelencia académica y desarrollo integral</p>
+        <div class="flex flex-wrap items-center justify-center gap-4">
+            <a href="{% url 'aulas_virtuales' %}"
+               class="inline-flex items-center gap-2 bg-gold hover:bg-gold/90 text-navy-dark font-semibold px-6 py-3 rounded-lg transition-colors">
+                <i class="ti ti-door-enter" aria-hidden="true"></i> Ir al aula virtual
+            </a>
+            <a href="{% url 'biblioteca' %}"
+               class="inline-flex items-center gap-2 border border-white/70 hover:bg-white/10 text-white font-semibold px-6 py-3 rounded-lg transition-colors">
+                <i class="ti ti-books" aria-hidden="true"></i> Explorar biblioteca
+            </a>
+        </div>
     </div>
 
-    <!-- Indicadores -->
     <div class="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2 z-50">
         <span class="hero-dot w-2.5 h-2.5 rounded-full bg-white cursor-pointer transition-opacity"></span>
         <span class="hero-dot w-2.5 h-2.5 rounded-full bg-white/50 cursor-pointer transition-opacity"></span>
         <span class="hero-dot w-2.5 h-2.5 rounded-full bg-white/50 cursor-pointer transition-opacity"></span>
     </div>
-</div>
+</section>
 
 <!-- ============ DESCRIPCIÓN ============ -->
-<div class="max-w-3xl mx-auto text-center mb-14">
+<section class="max-w-3xl mx-auto text-center px-4 py-16">
     <p class="text-gray-600 text-lg leading-relaxed">
         Somos una institución educativa comprometida con la excelencia académica y el desarrollo
         integral de nuestros estudiantes. Ofrecemos programas de calidad en diversas áreas del conocimiento.
     </p>
-</div>
+</section>
 
-<!-- ============ SERVICIOS ============ -->
-<div class="mb-14">
-    <h2 class="text-2xl font-semibold text-navy text-center mb-8">Nuestros servicios</h2>
-    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+<!-- ============ SERVICIOS (ancho completo, fondo distinto) ============ -->
+<section class="bg-gray-50 py-16">
+    <div class="max-w-7xl mx-auto px-4 md:px-8">
+        <h2 class="text-2xl md:text-3xl font-semibold text-navy text-center mb-10">Nuestros servicios</h2>
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 
-        <a href="{% url 'aulas_virtuales' %}" class="group bg-white rounded-card overflow-hidden shadow-sm hover:shadow-xl transition-all hover:-translate-y-1">
-            <div class="relative h-40 overflow-hidden">
-                <img src="{% static 'images/estudiantes.webp' %}" alt="Aulas virtuales" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
-                <div class="absolute inset-0 bg-navy/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <i class="ti ti-chalkboard text-white text-4xl" aria-hidden="true"></i>
+            <a href="{% url 'aulas_virtuales' %}" class="group bg-white rounded-card overflow-hidden shadow-sm hover:shadow-xl transition-all hover:-translate-y-1">
+                <div class="relative h-44 overflow-hidden">
+                    <img src="{% static 'images/estudiantes.webp' %}" alt="Aulas virtuales" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                    <div class="absolute inset-0 bg-navy/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <i class="ti ti-chalkboard text-white text-4xl" aria-hidden="true"></i>
+                    </div>
                 </div>
-            </div>
-            <div class="p-5">
-                <h3 class="font-semibold text-navy mb-1">Aulas virtuales</h3>
-                <p class="text-sm text-gray-500 mb-3">Accede a tus cursos en línea con recursos interactivos.</p>
-                <span class="text-sm font-medium text-gold group-hover:translate-x-1 inline-block transition-transform">Ver más →</span>
-            </div>
-        </a>
-
-        <a href="{% url 'portal_estudiantil' %}" class="group bg-white rounded-card overflow-hidden shadow-sm hover:shadow-xl transition-all hover:-translate-y-1">
-            <div class="relative h-40 overflow-hidden">
-                <img src="{% static 'images/OIP.webp' %}" alt="Portal estudiantil" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
-                <div class="absolute inset-0 bg-navy/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <i class="ti ti-user-circle text-white text-4xl" aria-hidden="true"></i>
+                <div class="p-6">
+                    <h3 class="font-semibold text-navy mb-1.5">Aulas virtuales</h3>
+                    <p class="text-sm text-gray-500 mb-3">Plataforma interactiva para clases en línea, recursos y seguimiento académico.</p>
+                    <span class="text-sm font-medium text-gold group-hover:translate-x-1 inline-flex items-center gap-1 transition-transform">Explorar <i class="ti ti-arrow-right" aria-hidden="true"></i></span>
                 </div>
-            </div>
-            <div class="p-5">
-                <h3 class="font-semibold text-navy mb-1">Portal estudiantil</h3>
-                <p class="text-sm text-gray-500 mb-3">Consulta tu información académica y documentos.</p>
-                <span class="text-sm font-medium text-gold group-hover:translate-x-1 inline-block transition-transform">Ver más →</span>
-            </div>
-        </a>
+            </a>
 
-        <a href="{% url 'biblioteca' %}" class="group bg-white rounded-card overflow-hidden shadow-sm hover:shadow-xl transition-all hover:-translate-y-1">
-            <div class="h-40 bg-gradient-to-br from-navy to-navy-dark flex items-center justify-center">
-                <i class="ti ti-books text-white/30 text-6xl" aria-hidden="true"></i>
-            </div>
-            <div class="p-5">
-                <h3 class="font-semibold text-navy mb-1">Biblioteca digital</h3>
-                <p class="text-sm text-gray-500 mb-3">Miles de recursos educativos y materiales de estudio.</p>
-                <span class="text-sm font-medium text-gold group-hover:translate-x-1 inline-block transition-transform">Ver más →</span>
-            </div>
-        </a>
+            <a href="{% url 'portal_estudiantil' %}" class="group bg-white rounded-card overflow-hidden shadow-sm hover:shadow-xl transition-all hover:-translate-y-1">
+                <div class="relative h-44 overflow-hidden">
+                    <img src="{% static 'images/OIP.webp' %}" alt="Portal estudiantil" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                    <div class="absolute inset-0 bg-navy/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <i class="ti ti-user-circle text-white text-4xl" aria-hidden="true"></i>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <h3 class="font-semibold text-navy mb-1.5">Portal estudiantil</h3>
+                    <p class="text-sm text-gray-500 mb-3">Consulta calificaciones, horarios, solicitudes y documentos en un solo lugar.</p>
+                    <span class="text-sm font-medium text-gold group-hover:translate-x-1 inline-flex items-center gap-1 transition-transform">Acceder <i class="ti ti-arrow-right" aria-hidden="true"></i></span>
+                </div>
+            </a>
 
-        <a href="{% url 'admisiones' %}" class="group bg-white rounded-card overflow-hidden shadow-sm hover:shadow-xl transition-all hover:-translate-y-1">
-            <div class="h-40 bg-gradient-to-br from-sky-600 to-sky-800 flex items-center justify-center">
-                <i class="ti ti-pencil text-white/30 text-6xl" aria-hidden="true"></i>
-            </div>
-            <div class="p-5">
-                <h3 class="font-semibold text-navy mb-1">Admisiones</h3>
-                <p class="text-sm text-gray-500 mb-3">Requisitos y proceso para solicitar tu ingreso.</p>
-                <span class="text-sm font-medium text-gold group-hover:translate-x-1 inline-block transition-transform">Ver más →</span>
-            </div>
-        </a>
+            <a href="{% url 'biblioteca' %}" class="group bg-white rounded-card overflow-hidden shadow-sm hover:shadow-xl transition-all hover:-translate-y-1">
+                <div class="h-44 bg-gradient-to-br from-navy to-navy-dark flex items-center justify-center">
+                    <i class="ti ti-books text-white/30 text-6xl" aria-hidden="true"></i>
+                </div>
+                <div class="p-6">
+                    <h3 class="font-semibold text-navy mb-1.5">Biblioteca digital</h3>
+                    <p class="text-sm text-gray-500 mb-3">Miles de libros, artículos y recursos académicos digitales disponibles 24/7.</p>
+                    <span class="text-sm font-medium text-gold group-hover:translate-x-1 inline-flex items-center gap-1 transition-transform">Consultar <i class="ti ti-arrow-right" aria-hidden="true"></i></span>
+                </div>
+            </a>
 
-        <a href="{% url 'contacto' %}" class="group bg-white rounded-card overflow-hidden shadow-sm hover:shadow-xl transition-all hover:-translate-y-1 sm:col-span-2 lg:col-span-1">
-            <div class="h-40 bg-gradient-to-br from-gold to-amber-600 flex items-center justify-center">
-                <i class="ti ti-mail text-white/30 text-6xl" aria-hidden="true"></i>
-            </div>
-            <div class="p-5">
-                <h3 class="font-semibold text-navy mb-1">Contacto</h3>
-                <p class="text-sm text-gray-500 mb-3">Resuelve tus dudas e inquietudes con nosotros.</p>
-                <span class="text-sm font-medium text-gold group-hover:translate-x-1 inline-block transition-transform">Ver más →</span>
-            </div>
-        </a>
-    </div>
-</div>
+            <a href="{% url 'admisiones' %}" class="group bg-white rounded-card overflow-hidden shadow-sm hover:shadow-xl transition-all hover:-translate-y-1">
+                <div class="h-44 bg-gradient-to-br from-sky-600 to-sky-800 flex items-center justify-center">
+                    <i class="ti ti-pencil text-white/30 text-6xl" aria-hidden="true"></i>
+                </div>
+                <div class="p-6">
+                    <h3 class="font-semibold text-navy mb-1.5">Admisiones</h3>
+                    <p class="text-sm text-gray-500 mb-3">Proceso de admisión fácil, requisitos, convocatorias y asesoría estudiantil.</p>
+                    <span class="text-sm font-medium text-gold group-hover:translate-x-1 inline-flex items-center gap-1 transition-transform">Postular <i class="ti ti-arrow-right" aria-hidden="true"></i></span>
+                </div>
+            </a>
 
-<!-- ============ NOTICIAS ============ -->
-<div class="mb-14">
-    <h2 class="text-2xl font-semibold text-navy text-center mb-8">Noticias recientes</h2>
-    <div class="grid gap-6 md:grid-cols-3">
-        <div class="bg-white rounded-card shadow-sm p-5">
-            <div class="text-3xl mb-3">📅</div>
-            <h3 class="font-semibold text-navy mb-1">Inicio del año escolar</h3>
-            <p class="text-sm text-gray-500 mb-2">Las clases del período 2024 inician el próximo lunes con todas las medidas de seguridad.</p>
-            <span class="text-xs text-gray-400">22 de agosto de 2026</span>
-        </div>
-        <div class="bg-white rounded-card shadow-sm p-5">
-            <div class="text-3xl mb-3">📝</div>
-            <h3 class="font-semibold text-navy mb-1">Inscripciones abiertas</h3>
-            <p class="text-sm text-gray-500 mb-2">Las inscripciones para nuevos estudiantes ya están abiertas.</p>
-            <span class="text-xs text-gray-400">20 de agosto de 2026</span>
-        </div>
-        <div class="bg-white rounded-card shadow-sm p-5">
-            <div class="text-3xl mb-3">💻</div>
-            <h3 class="font-semibold text-navy mb-1">Plataforma virtual</h3>
-            <p class="text-sm text-gray-500 mb-2">Nuestras aulas virtuales están disponibles 24/7 para todos los estudiantes.</p>
-            <span class="text-xs text-gray-400">18 de agosto de 2026</span>
+            <a href="{% url 'contacto' %}" class="group bg-white rounded-card overflow-hidden shadow-sm hover:shadow-xl transition-all hover:-translate-y-1 sm:col-span-2 lg:col-span-1">
+                <div class="h-44 bg-gradient-to-br from-gold to-amber-600 flex items-center justify-center">
+                    <i class="ti ti-mail text-white/30 text-6xl" aria-hidden="true"></i>
+                </div>
+                <div class="p-6">
+                    <h3 class="font-semibold text-navy mb-1.5">Contacto</h3>
+                    <p class="text-sm text-gray-500 mb-3">Resuelve tus dudas e inquietudes comunicándote directamente con nosotros.</p>
+                    <span class="text-sm font-medium text-gold group-hover:translate-x-1 inline-flex items-center gap-1 transition-transform">Escribir <i class="ti ti-arrow-right" aria-hidden="true"></i></span>
+                </div>
+            </a>
+
         </div>
     </div>
-</div>
+</section>
 
-<!-- ============ ESTADÍSTICAS ============ -->
-<div class="mb-14">
-    <h2 class="text-2xl font-semibold text-navy text-center mb-8">Nuestra institución</h2>
-    <div class="grid gap-6 grid-cols-2 md:grid-cols-4">
-        <div class="text-center bg-white rounded-card shadow-sm py-6">
-            <div class="text-3xl font-bold text-navy">5000+</div>
-            <div class="text-sm text-gray-500 mt-1">Estudiantes activos</div>
-        </div>
-        <div class="text-center bg-white rounded-card shadow-sm py-6">
-            <div class="text-3xl font-bold text-navy">150+</div>
-            <div class="text-sm text-gray-500 mt-1">Docentes especializados</div>
-        </div>
-        <div class="text-center bg-white rounded-card shadow-sm py-6">
-            <div class="text-3xl font-bold text-navy">25+</div>
-            <div class="text-sm text-gray-500 mt-1">Programas académicos</div>
-        </div>
-        <div class="text-center bg-white rounded-card shadow-sm py-6">
-            <div class="text-3xl font-bold text-navy">30+</div>
-            <div class="text-sm text-gray-500 mt-1">Años de trayectoria</div>
+<!-- ============ NOTICIAS (ancho completo) ============ -->
+<section class="py-16">
+    <div class="max-w-7xl mx-auto px-4 md:px-8">
+        <h2 class="text-2xl md:text-3xl font-semibold text-navy text-center mb-10">Noticias recientes</h2>
+        <div class="grid gap-6 md:grid-cols-3">
+            <div class="bg-white rounded-card shadow-sm border border-gray-100 p-6">
+                <div class="text-3xl mb-3">📅</div>
+                <h3 class="font-semibold text-navy mb-1.5">Inicio del año escolar</h3>
+                <p class="text-sm text-gray-500 mb-3">Las clases del período 2024 inician el próximo lunes con todas las medidas de seguridad.</p>
+                <span class="text-xs text-gray-400">22 de agosto de 2026</span>
+            </div>
+            <div class="bg-white rounded-card shadow-sm border border-gray-100 p-6">
+                <div class="text-3xl mb-3">📝</div>
+                <h3 class="font-semibold text-navy mb-1.5">Inscripciones abiertas</h3>
+                <p class="text-sm text-gray-500 mb-3">Las inscripciones para nuevos estudiantes ya están abiertas.</p>
+                <span class="text-xs text-gray-400">20 de agosto de 2026</span>
+            </div>
+            <div class="bg-white rounded-card shadow-sm border border-gray-100 p-6">
+                <div class="text-3xl mb-3">💻</div>
+                <h3 class="font-semibold text-navy mb-1.5">Plataforma virtual</h3>
+                <p class="text-sm text-gray-500 mb-3">Nuestras aulas virtuales están disponibles 24/7 para todos los estudiantes.</p>
+                <span class="text-xs text-gray-400">18 de agosto de 2026</span>
+            </div>
         </div>
     </div>
-</div>
+</section>
 
-<!-- ============ CTA CONTACTO ============ -->
-<div class="bg-navy rounded-card text-center text-white p-8 mb-6">
-    <h3 class="text-xl font-semibold mb-2 flex items-center justify-center gap-2">
-        <i class="ti ti-message-circle" aria-hidden="true"></i> ¿Tienes preguntas?
-    </h3>
-    <p class="text-white/80 mb-5">Nuestro equipo está disponible de lunes a viernes de 8:00 AM a 4:30 PM</p>
-    <a href="{% url 'contacto' %}" class="inline-flex items-center gap-2 bg-gold hover:bg-gold/90 text-navy-dark font-semibold px-6 py-3 rounded-lg transition-colors">
-        <i class="ti ti-mail" aria-hidden="true"></i> Contáctanos ahora
-    </a>
-</div>
+<!-- ============ ESTADÍSTICAS (fondo navy, ancho completo) ============ -->
+<section class="bg-navy py-16">
+    <div class="max-w-7xl mx-auto px-4 md:px-8">
+        <h2 class="text-2xl md:text-3xl font-semibold text-white text-center mb-10">Nuestra institución</h2>
+        <div class="grid gap-6 grid-cols-2 md:grid-cols-4">
+            <div class="text-center">
+                <div class="text-4xl font-bold text-gold">5000+</div>
+                <div class="text-sm text-white/70 mt-1">Estudiantes activos</div>
+            </div>
+            <div class="text-center">
+                <div class="text-4xl font-bold text-gold">150+</div>
+                <div class="text-sm text-white/70 mt-1">Docentes especializados</div>
+            </div>
+            <div class="text-center">
+                <div class="text-4xl font-bold text-gold">25+</div>
+                <div class="text-sm text-white/70 mt-1">Programas académicos</div>
+            </div>
+            <div class="text-center">
+                <div class="text-4xl font-bold text-gold">30+</div>
+                <div class="text-sm text-white/70 mt-1">Años de trayectoria</div>
+            </div>
+        </div>
+    </div>
+</section>
 
+<!-- ============ CTA CONTACTO (ancho completo) ============ -->
+<section class="py-16">
+    <div class="max-w-4xl mx-auto px-4 text-center">
+        <h3 class="text-xl md:text-2xl font-semibold text-navy mb-2 flex items-center justify-center gap-2">
+            <i class="ti ti-message-circle" aria-hidden="true"></i> ¿Tienes preguntas?
+        </h3>
+        <p class="text-gray-500 mb-6">Nuestro equipo está disponible de lunes a viernes de 8:00 AM a 4:30 PM</p>
+        <a href="{% url 'contacto' %}"
+           class="inline-flex items-center gap-2 bg-gold hover:bg-gold/90 text-navy-dark font-semibold px-6 py-3 rounded-lg transition-colors">
+            <i class="ti ti-mail" aria-hidden="true"></i> Contáctanos ahora
+        </a>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
 <script>
 (function () {
     const images = document.querySelectorAll('.hero-img');
@@ -200,4 +221,3 @@
 })();
 </script>
 {% endblock %}
-
