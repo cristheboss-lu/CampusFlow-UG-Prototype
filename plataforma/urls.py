@@ -14,6 +14,8 @@ urlpatterns = [
     path('login/', views.login_estudiante, name='login'),
     path('logout/', views.logout_estudiante, name='logout'),
     path('dashboard/', views.dashboard_estudiante, name='dashboard_estudiante'),
+    path('curso/<int:matricula_id>/', views.detalle_curso, name='detalle_curso'),
+    path('tarea/<int:tarea_id>/entregar/', views.entregar_tarea, name='entregar_tarea'),
 
     # ===== RECUPERACIÓN DE CONTRASEÑA =====
     path(
