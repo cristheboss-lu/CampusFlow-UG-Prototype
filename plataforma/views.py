@@ -5,9 +5,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
+from django.utils import timezone
 from openpyxl import load_workbook
 from .models import (
-    Materia, Mensaje, PerfilEstudiante, Carrera, Matricula, Tarea, EntregaTarea
+    Materia, Mensaje, PerfilEstudiante, PerfilDocente, Carrera, Matricula, Tarea, EntregaTarea
 )
 
 def index(request):
@@ -23,11 +24,11 @@ def aulas_virtuales(request):
 def portal_estudiantil(request):
     """Portal estudiantil - lista de estudiantes con su carrera"""
     estudiantes = PerfilEstudiante.objects.select_related('user', 'carrera').filter(activo=True)
-    return render(request, 'plataforma/portal_estudiante.html', {'estudiantes': estudiantes})
+    return render(request, 'plataforma/portal_estudiantil.html', {'estudiantes': estudiantes})
 
 def biblioteca(request):
     """Biblioteca digital"""
-    return render(request, 'plataforma/portal_estudiante.html', {'estudiantes': estudiantes})
+    return render(request, 'plataforma/biblioteca.html')
 
 def admisiones(request):
     """Admisiones"""
@@ -102,9 +103,72 @@ def dashboard_estudiante(request):
             'estado': entrega.estado if entrega else 'Pendiente',
         })
 
-    return render(request, 'plataforma/panel_estudiante.html', {
+    return render(request, 'plataforma/dashboard_estudiante.html', {
         'matriculas': matriculas,
         'tareas_con_estado': tareas_con_estado,
+    })
+
+
+@login_required(login_url='login')
+def detalle_curso(request, matricula_id):
+    """Muestra el detalle de un curso: info de la materia y sus tareas"""
+    matricula = Matricula.objects.select_related('materia', 'periodo').get(
+        id=matricula_id, estudiante=request.user
+    )
+
+    tareas = Tarea.objects.filter(materia=matricula.materia).order_by('fecha_entrega')
+    entregas_usuario = EntregaTarea.objects.filter(estudiante=request.user, tarea__in=tareas)
+    entregas_dict = {e.tarea_id: e for e in entregas_usuario}
+
+    tareas_con_estado = []
+    for tarea in tareas:
+        entrega = entregas_dict.get(tarea.id)
+        tareas_con_estado.append({
+            'tarea': tarea,
+            'entrega': entrega,
+            'estado': entrega.estado if entrega else 'Pendiente',
+        })
+
+    return render(request, 'plataforma/curso_detalle.html', {
+        'matricula': matricula,
+        'tareas_con_estado': tareas_con_estado,
+    })
+
+
+@login_required(login_url='login')
+def entregar_tarea(request, tarea_id):
+    """Muestra una tarea y permite subir/reemplazar el archivo de entrega"""
+    tarea = Tarea.objects.select_related('materia').get(id=tarea_id)
+
+    # Seguridad: el estudiante debe estar matriculado en la materia de esta tarea
+    matricula = Matricula.objects.filter(estudiante=request.user, materia=tarea.materia).first()
+    if not matricula:
+        messages.error(request, "❌ No tienes acceso a esta tarea")
+        return redirect('dashboard_estudiante')
+
+    entrega = EntregaTarea.objects.filter(tarea=tarea, estudiante=request.user).first()
+
+    if request.method == 'POST' and request.FILES.get('archivo'):
+        archivo = request.FILES['archivo']
+        estado = 'Atrasado' if timezone.now().date() > tarea.fecha_entrega else 'Entregado'
+
+        if entrega:
+            entrega.archivo = archivo
+            entrega.estado = estado
+            entrega.save()
+        else:
+            entrega = EntregaTarea.objects.create(
+                tarea=tarea, estudiante=request.user,
+                archivo=archivo, estado=estado
+            )
+
+        messages.success(request, "✅ Tarea entregada correctamente")
+        return redirect('entregar_tarea', tarea_id=tarea.id)
+
+    return render(request, 'plataforma/tarea_detalle.html', {
+        'tarea': tarea,
+        'entrega': entrega,
+        'matricula': matricula,
     })
 
 
@@ -205,6 +269,67 @@ def _importar_carreras_desde_excel(ws):
     return len(carreras_a_crear), errores
 
 
+def _importar_docentes_desde_excel(ws):
+    """Procesa un Excel de docentes. Columnas: Nombre, Apellido, Email, Cédula, Título académico, Carrera ID"""
+    password_hash = make_password('Temporal123!')
+    carreras_dict = {c.id: c for c in Carrera.objects.all()}
+    usernames_existentes = set(User.objects.values_list('username', flat=True))
+
+    usuarios_a_crear = []
+    filas_validas = []
+    errores = []
+    usernames_en_lote = set()
+
+    for fila_num, fila in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
+        try:
+            nombre, apellido, email, cedula, titulo, carrera_id = fila[0:6]
+
+            if not all([nombre, apellido, email, cedula]):
+                errores.append(f"Fila {fila_num}: Faltan datos obligatorios")
+                continue
+
+            username = str(email).split('@')[0]
+
+            if username in usernames_existentes or username in usernames_en_lote:
+                errores.append(f"Fila {fila_num}: El usuario {username} ya existe")
+                continue
+
+            carrera = carreras_dict.get(int(carrera_id)) if carrera_id else None
+            if carrera_id and not carrera:
+                errores.append(f"Fila {fila_num}: La carrera con ID {carrera_id} no existe")
+                continue
+
+            usernames_en_lote.add(username)
+
+            usuarios_a_crear.append(User(
+                username=username, email=email,
+                first_name=nombre, last_name=apellido,
+                password=password_hash
+            ))
+            filas_validas.append((username, cedula, titulo or '', carrera))
+
+        except Exception as e:
+            errores.append(f"Fila {fila_num}: {str(e)}")
+
+    User.objects.bulk_create(usuarios_a_crear)
+
+    usuarios_creados = {
+        u.username: u for u in User.objects.filter(username__in=[f[0] for f in filas_validas])
+    }
+
+    perfiles_a_crear = []
+    for username, cedula, titulo, carrera in filas_validas:
+        usuario_obj = usuarios_creados.get(username)
+        if usuario_obj:
+            perfiles_a_crear.append(PerfilDocente(
+                user=usuario_obj, carrera=carrera,
+                cedula=str(cedula), titulo_academico=str(titulo)
+            ))
+
+    PerfilDocente.objects.bulk_create(perfiles_a_crear)
+    return len(perfiles_a_crear), errores
+
+
 def _importar_materias_desde_excel(ws):
     """Procesa un Excel de materias. Columnas: Nombre, Código, Carrera ID, Créditos, Profesor"""
     carreras_dict = {c.id: c for c in Carrera.objects.all()}
@@ -266,9 +391,8 @@ def importar_estudiantes(request):
                 contador, errores = _importar_materias_desde_excel(ws)
                 etiqueta = 'materias'
             elif tipo == 'docentes':
-                # Aún no existe un modelo de Docente/PerfilDocente en el sistema.
-                messages.error(request, "❌ La importación de docentes todavía no está disponible: falta crear el modelo correspondiente.")
-                return redirect('importar_estudiantes')
+                contador, errores = _importar_docentes_desde_excel(ws)
+                etiqueta = 'docentes'
             else:
                 messages.error(request, "❌ Tipo de importación no reconocido")
                 return redirect('importar_estudiantes')
