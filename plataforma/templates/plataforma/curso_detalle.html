@@ -1,0 +1,67 @@
+{% extends "plataforma/base.html" %}
+
+{% block title %}{{ matricula.materia.nombre }} | Universidad de Guayaquil{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+
+    <a href="{% url 'dashboard_estudiante' %}" class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-navy mb-6">
+        <i class="ti ti-arrow-left" aria-hidden="true"></i> Volver al panel
+    </a>
+
+    <!-- Encabezado del curso -->
+    <div class="relative overflow-hidden bg-gradient-to-br from-navy to-navy-light text-white rounded-card p-8 mb-8">
+        <div class="text-xs font-semibold text-gold uppercase tracking-wide mb-1">{{ matricula.materia.codigo }}</div>
+        <h1 class="text-2xl md:text-3xl font-bold mb-2">{{ matricula.materia.nombre }}</h1>
+        <p class="text-white/70 text-sm">Período {{ matricula.periodo.nombre }} · {{ matricula.estado }}
+            {% if matricula.materia.profesor %} · Prof. {{ matricula.materia.profesor }}{% endif %}
+        </p>
+        <div class="w-full bg-white/20 rounded-full h-2 mt-5">
+            <div class="bg-gold h-2 rounded-full" style="width: {{ matricula.asistencia }}%;"></div>
+        </div>
+        <div class="text-xs text-white/70 mt-1.5">Asistencia: {{ matricula.asistencia }}%</div>
+        <i class="ti ti-book-2 text-8xl text-white/10 absolute -right-4 -bottom-4" aria-hidden="true"></i>
+    </div>
+
+    <!-- Tareas del curso -->
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-navy">Tareas y actividades</h2>
+        <span class="text-xs text-gray-400">{{ tareas_con_estado|length }} tarea(s)</span>
+    </div>
+
+    {% if tareas_con_estado %}
+    <div class="grid gap-4 sm:grid-cols-2">
+        {% for item in tareas_con_estado %}
+        <a href="{% url 'entregar_tarea' item.tarea.id %}"
+           class="group bg-white rounded-card shadow-sm hover:shadow-xl transition-all hover:-translate-y-1 p-6 flex flex-col">
+            <div class="flex items-start justify-between mb-3">
+                <div class="w-10 h-10 rounded-lg bg-navy-light/10 flex items-center justify-center shrink-0">
+                    <i class="ti ti-file-text text-navy text-lg" aria-hidden="true"></i>
+                </div>
+                {% if item.estado == "Pendiente" %}
+                <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 whitespace-nowrap">{{ item.estado }}</span>
+                {% elif item.estado == "Entregado" %}
+                <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-green-50 text-green-700 whitespace-nowrap">{{ item.estado }}</span>
+                {% elif item.estado == "Calificado" %}
+                <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-navy whitespace-nowrap">{{ item.estado }}</span>
+                {% elif item.estado == "Atrasado" %}
+                <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-red-50 text-red-700 whitespace-nowrap">{{ item.estado }}</span>
+                {% endif %}
+            </div>
+            <h3 class="font-semibold text-gray-800 mb-1 group-hover:text-navy transition-colors">{{ item.tarea.titulo }}</h3>
+            <p class="text-xs text-gray-500 mb-4 line-clamp-2">{{ item.tarea.descripcion|truncatewords:18 }}</p>
+            <div class="mt-auto flex items-center justify-between text-xs text-gray-400">
+                <span class="flex items-center gap-1"><i class="ti ti-calendar" aria-hidden="true"></i> Entrega: {{ item.tarea.fecha_entrega|date:"d M Y" }}</span>
+                <span class="text-gold group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">Ver <i class="ti ti-arrow-right" aria-hidden="true"></i></span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="border border-dashed border-gray-300 rounded-card p-10 text-center text-sm text-gray-500">
+        Este curso todavía no tiene tareas asignadas.
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
