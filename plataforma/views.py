@@ -92,9 +92,9 @@ def contacto_exito(request):
 # ===== AUTENTICACIÓN DE ESTUDIANTES =====
 
 def login_estudiante(request):
-    """Login para estudiantes"""
+    """Login unificado: redirige según el rol del usuario"""
     if request.user.is_authenticated:
-        return redirect('dashboard_estudiante')
+        return _redirigir_segun_rol(request.user)
 
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -103,11 +103,23 @@ def login_estudiante(request):
 
         if usuario is not None:
             login(request, usuario)
-            return redirect('dashboard_estudiante')
+            return _redirigir_segun_rol(usuario)
         else:
             messages.error(request, '❌ Usuario o contraseña incorrectos')
 
     return render(request, 'plataforma/login.html')
+
+
+def _redirigir_segun_rol(usuario):
+    """Decide a qué panel enviar al usuario según su PerfilUsuario"""
+    try:
+        perfil = PerfilUsuario.objects.get(user=usuario)
+        if perfil.rol == 'admin':
+            return redirect('panel_secretaria')
+        else:
+            return redirect('dashboard_estudiante')
+    except PerfilUsuario.DoesNotExist:
+        return redirect('dashboard_estudiante')
 
 def logout_estudiante(request):
     """Cerrar sesión"""
