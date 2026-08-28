@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from django.utils import timezone
+from django.db import transaction
 from openpyxl import load_workbook
 from .models import (
     Materia, Mensaje, PerfilEstudiante, PerfilDocente, Carrera, Matricula, Tarea, EntregaTarea
@@ -179,11 +180,15 @@ def _importar_estudiantes_desde_excel(ws):
     password_hash = make_password('Temporal123!')
     carreras_dict = {c.id: c for c in Carrera.objects.all()}
     usernames_existentes = set(User.objects.values_list('username', flat=True))
+    cedulas_existentes = set(PerfilEstudiante.objects.values_list('cedula', flat=True))
+    matriculas_existentes = set(PerfilEstudiante.objects.values_list('numero_matricula', flat=True))
 
     usuarios_a_crear = []
     filas_validas = []
     errores = []
     usernames_en_lote = set()
+    cedulas_en_lote = set()
+    matriculas_en_lote = set()
 
     for fila_num, fila in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
         try:
@@ -194,9 +199,17 @@ def _importar_estudiantes_desde_excel(ws):
                 continue
 
             username = str(email).split('@')[0]
+            cedula = str(cedula).strip()
+            numero_matricula = str(numero_matricula).strip()
 
             if username in usernames_existentes or username in usernames_en_lote:
                 errores.append(f"Fila {fila_num}: El usuario {username} ya existe")
+                continue
+            if cedula in cedulas_existentes or cedula in cedulas_en_lote:
+                errores.append(f"Fila {fila_num}: La cédula {cedula} ya existe")
+                continue
+            if numero_matricula in matriculas_existentes or numero_matricula in matriculas_en_lote:
+                errores.append(f"Fila {fila_num}: La matrícula {numero_matricula} ya existe")
                 continue
 
             carrera = carreras_dict.get(int(carrera_id))
@@ -205,6 +218,8 @@ def _importar_estudiantes_desde_excel(ws):
                 continue
 
             usernames_en_lote.add(username)
+            cedulas_en_lote.add(cedula)
+            matriculas_en_lote.add(numero_matricula)
 
             usuarios_a_crear.append(User(
                 username=username, email=email,
@@ -216,22 +231,24 @@ def _importar_estudiantes_desde_excel(ws):
         except Exception as e:
             errores.append(f"Fila {fila_num}: {str(e)}")
 
-    User.objects.bulk_create(usuarios_a_crear)
+    with transaction.atomic():
+        User.objects.bulk_create(usuarios_a_crear)
 
-    usuarios_creados = {
-        u.username: u for u in User.objects.filter(username__in=[f[0] for f in filas_validas])
-    }
+        usuarios_creados = {
+            u.username: u for u in User.objects.filter(username__in=[f[0] for f in filas_validas])
+        }
 
-    perfiles_a_crear = []
-    for username, cedula, numero_matricula, carrera in filas_validas:
-        usuario_obj = usuarios_creados.get(username)
-        if usuario_obj:
-            perfiles_a_crear.append(PerfilEstudiante(
-                user=usuario_obj, carrera=carrera,
-                cedula=str(cedula), numero_matricula=str(numero_matricula)
-            ))
+        perfiles_a_crear = []
+        for username, cedula, numero_matricula, carrera in filas_validas:
+            usuario_obj = usuarios_creados.get(username)
+            if usuario_obj:
+                perfiles_a_crear.append(PerfilEstudiante(
+                    user=usuario_obj, carrera=carrera,
+                    cedula=cedula, numero_matricula=numero_matricula
+                ))
 
-    PerfilEstudiante.objects.bulk_create(perfiles_a_crear)
+        PerfilEstudiante.objects.bulk_create(perfiles_a_crear)
+
     return len(perfiles_a_crear), errores
 
 
@@ -274,11 +291,13 @@ def _importar_docentes_desde_excel(ws):
     password_hash = make_password('Temporal123!')
     carreras_dict = {c.id: c for c in Carrera.objects.all()}
     usernames_existentes = set(User.objects.values_list('username', flat=True))
+    cedulas_existentes = set(PerfilDocente.objects.values_list('cedula', flat=True))
 
     usuarios_a_crear = []
     filas_validas = []
     errores = []
     usernames_en_lote = set()
+    cedulas_en_lote = set()
 
     for fila_num, fila in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
         try:
@@ -289,9 +308,13 @@ def _importar_docentes_desde_excel(ws):
                 continue
 
             username = str(email).split('@')[0]
+            cedula = str(cedula).strip()
 
             if username in usernames_existentes or username in usernames_en_lote:
                 errores.append(f"Fila {fila_num}: El usuario {username} ya existe")
+                continue
+            if cedula in cedulas_existentes or cedula in cedulas_en_lote:
+                errores.append(f"Fila {fila_num}: La cédula {cedula} ya existe")
                 continue
 
             carrera = carreras_dict.get(int(carrera_id)) if carrera_id else None
@@ -300,6 +323,7 @@ def _importar_docentes_desde_excel(ws):
                 continue
 
             usernames_en_lote.add(username)
+            cedulas_en_lote.add(cedula)
 
             usuarios_a_crear.append(User(
                 username=username, email=email,
@@ -311,22 +335,24 @@ def _importar_docentes_desde_excel(ws):
         except Exception as e:
             errores.append(f"Fila {fila_num}: {str(e)}")
 
-    User.objects.bulk_create(usuarios_a_crear)
+    with transaction.atomic():
+        User.objects.bulk_create(usuarios_a_crear)
 
-    usuarios_creados = {
-        u.username: u for u in User.objects.filter(username__in=[f[0] for f in filas_validas])
-    }
+        usuarios_creados = {
+            u.username: u for u in User.objects.filter(username__in=[f[0] for f in filas_validas])
+        }
 
-    perfiles_a_crear = []
-    for username, cedula, titulo, carrera in filas_validas:
-        usuario_obj = usuarios_creados.get(username)
-        if usuario_obj:
-            perfiles_a_crear.append(PerfilDocente(
-                user=usuario_obj, carrera=carrera,
-                cedula=str(cedula), titulo_academico=str(titulo)
-            ))
+        perfiles_a_crear = []
+        for username, cedula, titulo, carrera in filas_validas:
+            usuario_obj = usuarios_creados.get(username)
+            if usuario_obj:
+                perfiles_a_crear.append(PerfilDocente(
+                    user=usuario_obj, carrera=carrera,
+                    cedula=cedula, titulo_academico=titulo
+                ))
 
-    PerfilDocente.objects.bulk_create(perfiles_a_crear)
+        PerfilDocente.objects.bulk_create(perfiles_a_crear)
+
     return len(perfiles_a_crear), errores
 
 
