@@ -22,7 +22,6 @@ def crear_admin(apps, schema_editor):
 
     PerfilUsuario.objects.create(
         user=user,
-        cedula='0000000000',
         rol='admin',
     )
 
