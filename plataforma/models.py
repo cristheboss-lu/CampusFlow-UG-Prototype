@@ -75,6 +75,29 @@ class PerfilDocente(models.Model):
         verbose_name_plural = "Perfiles de Docente"
 
 
+class PerfilUsuario(models.Model):
+    """
+    Perfil ligero que guarda el ROL del usuario (admin/docente/estudiante).
+    Es independiente de PerfilEstudiante y PerfilDocente, que guardan datos
+    académicos específicos de cada rol. Este solo sirve para saber a qué
+    panel debe redirigir el login y qué permisos tiene.
+    """
+    ROLES = [
+        ('admin', 'Administrador / Secretaría'),
+        ('docente', 'Docente'),
+        ('estudiante', 'Estudiante'),
+    ]
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil_usuario')
+    rol = models.CharField(max_length=20, choices=ROLES)
+
+    def __str__(self):
+        return f"{self.user.get_full_name()} - {self.get_rol_display()}"
+
+    class Meta:
+        verbose_name_plural = "Perfiles de Usuario"
+
+
 # ===== ACADÉMICO =====
 class Matricula(models.Model):
     ESTADOS = [
