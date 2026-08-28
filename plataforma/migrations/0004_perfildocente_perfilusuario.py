@@ -8,9 +8,8 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('plataforma', '0003_crear_usuario_secretaria'),
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-    ]
+    ('plataforma', '0002_bibliotecadigital_calificacion_carrera_certificado_and_more'),
+]
 
     operations = [
         migrations.CreateModel(
