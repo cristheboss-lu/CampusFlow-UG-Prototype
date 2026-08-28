@@ -15,8 +15,4 @@ Plataforma académica inspirada en la Universidad de Guayaquil, desarrollada en 
 ### 🛠 Stack
 Python, Django, TailwindCSS, SQLite, Render
 
-### 🔑 Usuario de prueba
-`secretaria / secretaria123`
 
----
-Hecho por @cristheboss-lu - Proyecto de titulación
