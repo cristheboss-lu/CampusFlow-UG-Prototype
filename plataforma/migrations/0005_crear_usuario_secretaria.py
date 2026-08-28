@@ -1,6 +1,7 @@
 from django.db import migrations
 from django.contrib.auth.hashers import make_password
 
+
 def crear_admin(apps, schema_editor):
     User = apps.get_model('auth', 'User')
     PerfilUsuario = apps.get_model('plataforma', 'PerfilUsuario')
@@ -25,14 +26,16 @@ def crear_admin(apps, schema_editor):
         rol='admin',
     )
 
+
 def revertir(apps, schema_editor):
     User = apps.get_model('auth', 'User')
     User.objects.filter(username='secretaria').delete()
 
+
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('plataforma', '0002_bibliotecadigital_calificacion_carrera_certificado_and_more'),
+        ('plataforma', '0004_perfildocente_perfilusuario'),
     ]
 
     operations = [
