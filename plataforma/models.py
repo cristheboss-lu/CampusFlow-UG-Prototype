@@ -159,6 +159,14 @@ class Calificacion(models.Model):
 # ===== RECURSOS =====
 class Tarea(models.Model):
     materia = models.ForeignKey(Materia, on_delete=models.CASCADE, related_name='tareas')
+    actividad = models.ForeignKey(
+        'ActividadPlanificada',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='tareas',
+        help_text="Actividad de la planificación de la que cuelga. Define su categoría y su parcial."
+    )
     titulo = models.CharField(max_length=200)
     descripcion = models.TextField()
     fecha_asignacion = models.DateField(auto_now_add=True)
@@ -167,6 +175,16 @@ class Tarea(models.Model):
     # Almacenar en Cloudinary desde el inicio
     pdf_guia = cloudinary.models.CloudinaryField('guias', null=True, blank=True)
     
+    @property
+    def categoria(self):
+        """Categoría heredada de la actividad planificada, si la tiene."""
+        return self.actividad.categoria if self.actividad else None
+
+    @property
+    def parcial(self):
+        """Parcial al que aporta esta tarea, si cuelga de la planificación."""
+        return self.actividad.unidad.parcial if self.actividad else None
+
     def __str__(self):
         return f"{self.materia.codigo} - {self.titulo}"
     
