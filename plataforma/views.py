@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from django.utils import timezone
 from django.db import transaction
+from django.db.models import Count
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from openpyxl import load_workbook
@@ -14,7 +15,8 @@ from datetime import datetime
 import json
 from .models import (
     Materia, Mensaje, PerfilEstudiante, PerfilDocente, PerfilUsuario, 
-    Carrera, Matricula, Periodo, Tarea, EntregaTarea, Certificado
+    Carrera, Matricula, Periodo, Tarea, EntregaTarea, Certificado,
+    Planificacion, Parcial, Unidad, ActividadPlanificada
 )
 
 
@@ -116,6 +118,8 @@ def _redirigir_segun_rol(usuario):
         perfil = PerfilUsuario.objects.get(user=usuario)
         if perfil.rol == 'admin':
             return redirect('panel_secretaria')
+        elif perfil.rol == 'docente':
+            return redirect('dashboard_docente')
         else:
             return redirect('dashboard_estudiante')
     except PerfilUsuario.DoesNotExist:
@@ -1304,3 +1308,71 @@ def importar_estudiantes(request):
 
     carreras = Carrera.objects.all()
     return render(request, 'plataforma/importar_estudiantes.html', {'carreras': carreras})
+
+
+# ===== PANEL DOCENTE =====
+def _perfil_docente_o_none(user):
+    """Devuelve el PerfilDocente del usuario, o None si no lo tiene configurado."""
+    return PerfilDocente.objects.select_related('carrera').filter(user=user).first()
+
+
+@login_required(login_url='login')
+@rol_requerido('docente')
+def dashboard_docente(request):
+    """Panel del docente: sus materias del período activo con su carga de trabajo"""
+    perfil = _perfil_docente_o_none(request.user)
+    if not perfil:
+        messages.error(request, "❌ Tu perfil de docente no está configurado. Contacta a secretaría.")
+        return redirect('index')
+
+    periodo = Periodo.objects.filter(activo=True).order_by('-fecha_inicio').first()
+    materias = perfil.materias.select_related('carrera').order_by('codigo')
+    materias_ids = list(materias.values_list('id', flat=True))
+
+    # Conteos por materia, en una consulta por métrica en vez de una por materia
+    matriculas_qs = Matricula.objects.filter(materia_id__in=materias_ids)
+    if periodo:
+        matriculas_qs = matriculas_qs.filter(periodo=periodo)
+    estudiantes_por_materia = {
+        fila['materia_id']: fila['total']
+        for fila in matriculas_qs.values('materia_id').annotate(total=Count('id'))
+    }
+
+    tareas_por_materia = {
+        fila['materia_id']: fila['total']
+        for fila in Tarea.objects.filter(materia_id__in=materias_ids)
+                                 .values('materia_id').annotate(total=Count('id'))
+    }
+
+    pendientes_por_materia = {
+        fila['tarea__materia_id']: fila['total']
+        for fila in EntregaTarea.objects.filter(
+            tarea__materia_id__in=materias_ids, calificacion__isnull=True
+        ).values('tarea__materia_id').annotate(total=Count('id'))
+    }
+
+    planificaciones = {}
+    if periodo:
+        planificaciones = {
+            plan.materia_id: plan
+            for plan in Planificacion.objects.filter(materia_id__in=materias_ids, periodo=periodo)
+        }
+
+    tarjetas = []
+    for materia in materias:
+        tarjetas.append({
+            'materia': materia,
+            'estudiantes': estudiantes_por_materia.get(materia.id, 0),
+            'tareas': tareas_por_materia.get(materia.id, 0),
+            'por_calificar': pendientes_por_materia.get(materia.id, 0),
+            'planificacion': planificaciones.get(materia.id),
+        })
+
+    return render(request, 'plataforma/dashboard_docente.html', {
+        'perfil': perfil,
+        'periodo': periodo,
+        'materias': tarjetas,
+        'total_materias': len(tarjetas),
+        'total_estudiantes': sum(t['estudiantes'] for t in tarjetas),
+        'total_por_calificar': sum(t['por_calificar'] for t in tarjetas),
+    })
