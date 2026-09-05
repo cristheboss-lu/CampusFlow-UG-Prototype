@@ -228,17 +228,19 @@ def panel_secretaria(request):
     usuarios_count = User.objects.count()
     carreras_count = Carrera.objects.count()
     periodos_count = Periodo.objects.count()
-    materias_count = Materia.objects.count()
-    estudiantes_count = PerfilEstudiante.objects.filter(activo=True).count()
-    docentes_count = PerfilDocente.objects.filter(activo=True).count()
+    total_materias = Materia.objects.count()
+    total_estudiantes = PerfilEstudiante.objects.filter(activo=True).count()
+    total_docentes = PerfilDocente.objects.filter(activo=True).count()
+    total_matriculas = Matricula.objects.filter(estado='Cursando').count()
 
     return render(request, 'plataforma/panel_secretaria.html', {
         'usuarios_count': usuarios_count,
         'carreras_count': carreras_count,
         'periodos_count': periodos_count,
-        'materias_count': materias_count,
-        'estudiantes_count': estudiantes_count,
-        'docentes_count': docentes_count,
+        'total_materias': total_materias,
+        'total_estudiantes': total_estudiantes,
+        'total_docentes': total_docentes,
+        'total_matriculas': total_matriculas,
     })
 
 
