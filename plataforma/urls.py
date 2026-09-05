@@ -28,6 +28,7 @@ urlpatterns = [
     path('docente/tarea/<int:tarea_id>/entregas/', views.docente_tarea_entregas, name='docente_tarea_entregas'),
     path('docente/materia/<int:materia_id>/estudiantes/', views.docente_materia_estudiantes, name='docente_materia_estudiantes'),
     path('docente/materia/<int:materia_id>/planificacion/', views.docente_materia_planificacion, name='docente_materia_planificacion'),
+    path('docente/actividad/<int:actividad_id>/editar/', views.docente_actividad_editar, name='docente_actividad_editar'),
     path('docente/materia/<int:materia_id>/parcial/<int:parcial_id>/calificar/', views.docente_calificar_parcial, name='docente_calificar_parcial'),
 
     # ===== PANEL SECRETARÍA =====
