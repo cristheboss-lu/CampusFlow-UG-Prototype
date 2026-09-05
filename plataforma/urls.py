@@ -26,6 +26,7 @@ urlpatterns = [
     path('docente/', views.dashboard_docente, name='dashboard_docente'),
     path('docente/materia/<int:materia_id>/tareas/', views.docente_materia_tareas, name='docente_materia_tareas'),
     path('docente/tarea/<int:tarea_id>/entregas/', views.docente_tarea_entregas, name='docente_tarea_entregas'),
+    path('docente/materia/<int:materia_id>/estudiantes/', views.docente_materia_estudiantes, name='docente_materia_estudiantes'),
 
     # ===== PANEL SECRETARÍA =====
     path('secretaria/', views.panel_secretaria, name='panel_secretaria'),

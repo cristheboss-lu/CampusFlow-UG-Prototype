@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from django.utils import timezone
 from django.db import transaction
-from django.db.models import Count
+from django.db.models import Count, Avg
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from openpyxl import load_workbook
@@ -1526,4 +1526,64 @@ def docente_tarea_entregas(request, tarea_id):
         'filas': filas,
         'total_entregadas': sum(1 for f in filas if f['entrega']),
         'total_por_calificar': sum(1 for f in filas if f['entrega'] and f['entrega'].calificacion is None),
+    })
+
+
+@login_required(login_url='login')
+@rol_requerido('docente')
+def docente_materia_estudiantes(request, materia_id):
+    """Lista de estudiantes matriculados en una materia del docente"""
+    perfil, materia = _materia_del_docente(request.user, materia_id)
+    if not perfil:
+        messages.error(request, "❌ Tu perfil de docente no está configurado. Contacta a secretaría.")
+        return redirect('index')
+    if not materia:
+        messages.error(request, "❌ Esa materia no está asignada a ti")
+        return redirect('dashboard_docente')
+
+    periodo_id = request.GET.get('periodo', '')
+    matriculas = Matricula.objects.filter(materia=materia).select_related('estudiante', 'periodo')
+    if periodo_id:
+        matriculas = matriculas.filter(periodo_id=periodo_id)
+
+    estudiantes_ids = [m.estudiante_id for m in matriculas]
+
+    perfiles = {
+        pe.user_id: pe
+        for pe in PerfilEstudiante.objects.filter(user_id__in=estudiantes_ids)
+    }
+
+    total_tareas = Tarea.objects.filter(materia=materia).count()
+    entregas_por_estudiante = {
+        fila['estudiante_id']: fila['total']
+        for fila in EntregaTarea.objects.filter(tarea__materia=materia, estudiante_id__in=estudiantes_ids)
+                                        .values('estudiante_id').annotate(total=Count('id'))
+    }
+    promedios = {
+        fila['estudiante_id']: fila['promedio']
+        for fila in EntregaTarea.objects.filter(
+            tarea__materia=materia, estudiante_id__in=estudiantes_ids, calificacion__isnull=False
+        ).values('estudiante_id').annotate(promedio=Avg('calificacion'))
+    }
+
+    filas = []
+    for matricula in matriculas:
+        filas.append({
+            'matricula': matricula,
+            'estudiante': matricula.estudiante,
+            'perfil': perfiles.get(matricula.estudiante_id),
+            'entregas': entregas_por_estudiante.get(matricula.estudiante_id, 0),
+            'promedio_entregas': promedios.get(matricula.estudiante_id),
+        })
+    filas.sort(key=lambda f: (f['estudiante'].last_name, f['estudiante'].first_name))
+
+    periodos = Periodo.objects.filter(matriculas__materia=materia).distinct().order_by('-fecha_inicio')
+
+    return render(request, 'plataforma/docente_materia_estudiantes.html', {
+        'perfil': perfil,
+        'materia': materia,
+        'filas': filas,
+        'total_tareas': total_tareas,
+        'periodos': periodos,
+        'periodo_filtro': periodo_id,
     })
