@@ -1,0 +1,14 @@
+{% with url_name=request.resolver_match.url_name %}
+<a href="{% url 'dashboard_estudiante' %}"
+   class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors {% if url_name == 'dashboard_estudiante' or url_name == 'entregar_tarea' %}bg-white/10 font-medium{% endif %}">
+  <i class="ti ti-home text-lg" aria-hidden="true"></i> Panel principal
+</a>
+<a href="{% url 'dashboard_estudiante' %}#mis-cursos"
+   class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors {% if url_name == 'detalle_curso' %}bg-white/10 font-medium{% endif %}">
+  <i class="ti ti-book text-lg" aria-hidden="true"></i> Mis cursos
+</a>
+<a href="{% url 'biblioteca' %}"
+   class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors {% if url_name == 'biblioteca' %}bg-white/10 font-medium{% endif %}">
+  <i class="ti ti-book-2 text-lg" aria-hidden="true"></i> Biblioteca
+</a>
+{% endwith %}

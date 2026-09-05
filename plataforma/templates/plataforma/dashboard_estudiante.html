@@ -2,6 +2,8 @@
 
 {% block title %}Panel principal | Universidad de Guayaquil{% endblock %}
 
+{% block sidebar_links %}{% include 'plataforma/_sidebar_estudiante.html' %}{% endblock %}
+
 {% block content %}
 <div class="max-w-5xl mx-auto">
 
@@ -53,7 +55,7 @@
     {% endif %}
 
     <!-- Mis cursos -->
-    <div class="flex items-center justify-between mb-4">
+    <div id="mis-cursos" class="flex items-center justify-between mb-4 scroll-mt-6">
         <h2 class="text-lg font-semibold text-navy">Mis cursos</h2>
         <span class="text-xs text-gray-400">{{ total_cursos }} curso(s)</span>
     </div>
