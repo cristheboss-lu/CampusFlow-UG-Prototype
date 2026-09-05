@@ -15,7 +15,7 @@ from datetime import datetime
 import json
 from .models import (
     Materia, Mensaje, PerfilEstudiante, PerfilDocente, PerfilUsuario, 
-    Carrera, Matricula, Periodo, Tarea, EntregaTarea, Certificado,
+    Carrera, Matricula, Periodo, Tarea, EntregaTarea, Certificado, Calificacion,
     Planificacion, Parcial, Unidad, ActividadPlanificada
 )
 
@@ -1586,4 +1586,145 @@ def docente_materia_estudiantes(request, materia_id):
         'total_tareas': total_tareas,
         'periodos': periodos,
         'periodo_filtro': periodo_id,
+    })
+
+
+def _promedio(valores):
+    """Promedio simple, o None si no hay notas."""
+    return sum(valores) / len(valores) if valores else None
+
+
+def _calcular_nota_parcial(parcial, notas_por_categoria):
+    """
+    Aplica la fórmula del parcial sobre los promedios de cada categoría.
+
+        nota = (prom_formativa  × peso_formativa / 100)
+             + (prom_practica   × peso_practica  / 100)
+             + (nota_examen     × peso_examen    / 100)
+
+    Una categoría sin notas cuenta como 0 y la nota se marca incompleta, para que
+    el docente vea que aún falta evaluar algo en vez de recibir un número que
+    parece definitivo.
+    """
+    prom_formativa = _promedio(notas_por_categoria.get('formativa', []))
+    prom_practica = _promedio(notas_por_categoria.get('practica', []))
+    nota_examen = _promedio(notas_por_categoria.get('examen', []))
+
+    nota = (
+        (prom_formativa or 0) * parcial.peso_formativa / 100
+        + (prom_practica or 0) * parcial.peso_practica / 100
+        + (nota_examen or 0) * parcial.peso_examen / 100
+    )
+
+    faltantes = [
+        etiqueta
+        for valor, peso, etiqueta in (
+            (prom_formativa, parcial.peso_formativa, 'formativa'),
+            (prom_practica, parcial.peso_practica, 'práctica'),
+            (nota_examen, parcial.peso_examen, 'examen'),
+        )
+        if valor is None and peso > 0
+    ]
+
+    return {
+        'prom_formativa': prom_formativa,
+        'prom_practica': prom_practica,
+        'nota_examen': nota_examen,
+        'nota': round(nota, 2),
+        'faltantes': faltantes,
+        'completa': not faltantes,
+    }
+
+
+@login_required(login_url='login')
+@rol_requerido('docente')
+def docente_calificar_parcial(request, materia_id, parcial_id):
+    """Calcula y guarda la nota de un parcial aplicando los pesos por categoría"""
+    perfil, materia = _materia_del_docente(request.user, materia_id)
+    if not perfil:
+        messages.error(request, "❌ Tu perfil de docente no está configurado. Contacta a secretaría.")
+        return redirect('index')
+    if not materia:
+        messages.error(request, "❌ Esa materia no está asignada a ti")
+        return redirect('dashboard_docente')
+
+    parcial = Parcial.objects.select_related('planificacion', 'planificacion__periodo').filter(
+        id=parcial_id, planificacion__materia=materia
+    ).first()
+    if not parcial:
+        messages.error(request, "❌ Ese parcial no pertenece a la planificación de esta materia")
+        return redirect('dashboard_docente')
+
+    tipo_calificacion = f"Parcial {parcial.numero}"
+    tipos_validos = [t[0] for t in Calificacion.TIPOS]
+
+    periodo = parcial.planificacion.periodo
+    matriculas = Matricula.objects.filter(materia=materia, periodo=periodo).select_related('estudiante')
+
+    # Entregas calificadas de tareas que cuelgan de este parcial
+    entregas = EntregaTarea.objects.filter(
+        tarea__materia=materia,
+        tarea__actividad__unidad__parcial=parcial,
+        calificacion__isnull=False,
+    ).select_related('tarea', 'tarea__actividad')
+
+    notas = {}
+    for entrega in entregas:
+        por_categoria = notas.setdefault(entrega.estudiante_id, {})
+        por_categoria.setdefault(entrega.tarea.actividad.categoria, []).append(entrega.calificacion)
+
+    filas = []
+    for matricula in matriculas:
+        calculo = _calcular_nota_parcial(parcial, notas.get(matricula.estudiante_id, {}))
+        calculo['matricula'] = matricula
+        calculo['estudiante'] = matricula.estudiante
+        filas.append(calculo)
+    filas.sort(key=lambda f: (f['estudiante'].last_name, f['estudiante'].first_name))
+
+    if request.method == 'POST':
+        if tipo_calificacion not in tipos_validos:
+            messages.error(
+                request,
+                f"❌ No se puede guardar «{tipo_calificacion}»: Calificacion solo admite "
+                f"{', '.join(tipos_validos)}."
+            )
+            return redirect('docente_calificar_parcial', materia_id=materia.id, parcial_id=parcial.id)
+
+        solo_completas = request.POST.get('solo_completas') == '1'
+        guardadas = 0
+
+        with transaction.atomic():
+            for fila in filas:
+                if solo_completas and not fila['completa']:
+                    continue
+
+                Calificacion.objects.update_or_create(
+                    matricula=fila['matricula'],
+                    tipo=tipo_calificacion,
+                    defaults={'valor': fila['nota']},
+                )
+                guardadas += 1
+
+                # La nota final de la materia es el promedio de los parciales guardados
+                valores = list(
+                    Calificacion.objects.filter(
+                        matricula=fila['matricula'], tipo__startswith='Parcial '
+                    ).values_list('valor', flat=True)
+                )
+                if valores:
+                    fila['matricula'].nota_final = round(sum(valores) / len(valores), 2)
+                    fila['matricula'].save(update_fields=['nota_final'])
+
+        messages.success(request, f"✅ {tipo_calificacion}: {guardadas} nota(s) guardadas")
+        return redirect('docente_calificar_parcial', materia_id=materia.id, parcial_id=parcial.id)
+
+    return render(request, 'plataforma/docente_calificar_parcial.html', {
+        'perfil': perfil,
+        'materia': materia,
+        'parcial': parcial,
+        'periodo': periodo,
+        'filas': filas,
+        'tipo_calificacion': tipo_calificacion,
+        'tipo_soportado': tipo_calificacion in tipos_validos,
+        'total_incompletas': sum(1 for f in filas if not f['completa']),
     })
