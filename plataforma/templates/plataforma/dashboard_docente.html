@@ -46,7 +46,9 @@
       <span>{{ item.por_calificar }} por calificar</span>
     </div>
     <div class="mt-4 pt-4 border-t border-gray-100">
-      <a href="{% url 'docente_materia_tareas' item.materia.id %}" class="text-sm text-navy hover:underline">Gestionar tareas →</a>
+      <a href="{% url 'docente_materia_tareas' item.materia.id %}" class="text-sm text-navy hover:underline">Gestionar tareas</a>
+      <span class="text-gray-300 mx-2">·</span>
+      <a href="{% url 'docente_materia_estudiantes' item.materia.id %}" class="text-sm text-navy hover:underline">Estudiantes</a>
     </div>
   </div>
   {% empty %}
