@@ -2,6 +2,22 @@
 
 {% block title %}Biblioteca | Universidad de Guayaquil{% endblock %}
 
+{% block sidebar_links %}
+{% if rol == 'docente' %}
+  {% include 'plataforma/_sidebar_docente.html' %}
+{% elif rol == 'estudiante' %}
+  {% include 'plataforma/_sidebar_estudiante.html' %}
+{% elif rol == 'admin' %}
+  <a href="{% url 'panel_secretaria' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors">
+    <i class="ti ti-home text-lg" aria-hidden="true"></i> Panel principal
+  </a>
+{% else %}
+  <a href="{% url 'login' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors">
+    <i class="ti ti-login text-lg" aria-hidden="true"></i> Iniciar sesión
+  </a>
+{% endif %}
+{% endblock %}
+
 {% block content %}
 <div class="max-w-3xl mx-auto">
 

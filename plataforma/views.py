@@ -61,7 +61,11 @@ def portal_estudiantil(request):
 
 def biblioteca(request):
     """Biblioteca digital"""
-    return render(request, 'plataforma/biblioteca.html')
+    rol = None
+    if request.user.is_authenticated:
+        perfil = PerfilUsuario.objects.filter(user=request.user).first()
+        rol = perfil.rol if perfil else None
+    return render(request, 'plataforma/biblioteca.html', {'rol': rol})
 
 def admisiones(request):
     """Admisiones"""
