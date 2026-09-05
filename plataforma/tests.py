@@ -638,3 +638,61 @@ class LoginNextTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse('dashboard_estudiante'))
+
+
+class BackfillPerfilUsuarioMigrationTests(TestCase):
+    """
+    Regresión para la migración 0011: crea el PerfilUsuario que le falte a
+    cualquier PerfilEstudiante/PerfilDocente, sin duplicar a quien ya lo tiene.
+    """
+
+    def setUp(self):
+        self.carrera = Carrera.objects.create(nombre='Prueba', codigo='PRB')
+
+    def _correr_backfill(self):
+        import importlib
+        from django.apps import apps
+        # El nombre del módulo empieza con un dígito: no es un identificador
+        # Python válido para "import" normal, se carga por ruta con importlib.
+        modulo = importlib.import_module(
+            'plataforma.migrations.0011_backfill_perfilusuario_faltantes'
+        )
+        modulo.backfill_perfilusuario(apps, None)
+
+    def test_crea_perfilusuario_faltante_de_estudiante(self):
+        user = User.objects.create_user('bf_est', 'bf_est@x.com', 'x')
+        PerfilEstudiante.objects.create(user=user, carrera=self.carrera, cedula='8880001', numero_matricula='M-801')
+        self.assertFalse(PerfilUsuario.objects.filter(user=user).exists())
+
+        self._correr_backfill()
+
+        perfil = PerfilUsuario.objects.get(user=user)
+        self.assertEqual(perfil.rol, 'estudiante')
+
+    def test_crea_perfilusuario_faltante_de_docente(self):
+        user = User.objects.create_user('bf_doc', 'bf_doc@x.com', 'x')
+        PerfilDocente.objects.create(user=user, carrera=self.carrera, cedula='8880002')
+        self.assertFalse(PerfilUsuario.objects.filter(user=user).exists())
+
+        self._correr_backfill()
+
+        perfil = PerfilUsuario.objects.get(user=user)
+        self.assertEqual(perfil.rol, 'docente')
+
+    def test_no_duplica_a_quien_ya_tiene_perfilusuario(self):
+        user = User.objects.create_user('bf_est2', 'bf_est2@x.com', 'x')
+        PerfilEstudiante.objects.create(user=user, carrera=self.carrera, cedula='8880003', numero_matricula='M-802')
+        PerfilUsuario.objects.create(user=user, rol='estudiante')
+
+        self._correr_backfill()
+
+        self.assertEqual(PerfilUsuario.objects.filter(user=user).count(), 1)
+
+    def test_no_toca_usuarios_sin_perfil_especifico(self):
+        # Un superusuario sin PerfilEstudiante/PerfilDocente (como 'admin' en
+        # producción) no debe recibir un PerfilUsuario por el backfill.
+        admin_user = User.objects.create_user('bf_admin', 'bf_admin@x.com', 'x', is_staff=True, is_superuser=True)
+
+        self._correr_backfill()
+
+        self.assertFalse(PerfilUsuario.objects.filter(user=admin_user).exists())
