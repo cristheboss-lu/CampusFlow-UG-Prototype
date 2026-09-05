@@ -799,7 +799,7 @@ def secretaria_materias_carga_masiva(request):
 @rol_requerido('admin')
 def secretaria_matriculas(request):
     """Gestión de matrículas"""
-    matriculas = Matricula.objects.select_related('estudiante__user', 'materia', 'periodo').all()
+    matriculas = Matricula.objects.select_related('estudiante', 'materia', 'periodo').all()
     estudiantes = PerfilEstudiante.objects.select_related('user').filter(activo=True)
     materias = Materia.objects.all()
     periodos = Periodo.objects.all()
@@ -810,7 +810,7 @@ def secretaria_matriculas(request):
         periodo_id = request.POST.get('periodo_id')
 
         try:
-            estudiante = PerfilEstudiante.objects.get(id=estudiante_id)
+            estudiante = User.objects.get(id=estudiante_id)
             materia = Materia.objects.get(id=materia_id)
             periodo = Periodo.objects.get(id=periodo_id)
 
@@ -927,7 +927,7 @@ def secretaria_certificados(request):
     """Gestión de certificados"""
     tipo_filtro = request.GET.get('tipo', '')
     
-    certificados = Certificado.objects.select_related('estudiante__user').all()
+    certificados = Certificado.objects.select_related('estudiante').all()
     if tipo_filtro:
         certificados = certificados.filter(tipo=tipo_filtro)
     
@@ -936,16 +936,15 @@ def secretaria_certificados(request):
     if request.method == 'POST':
         estudiante_id = request.POST.get('estudiante_id')
         tipo = request.POST.get('tipo')
-        fecha_emision = request.POST.get('fecha_emision')
 
         try:
             estudiante = PerfilEstudiante.objects.get(id=estudiante_id)
             numero_tramite = _generar_numero_tramite()
             Certificado.objects.create(
-                estudiante=estudiante,
+                estudiante=estudiante.user,
+                carrera=estudiante.carrera,
                 tipo=tipo,
-                fecha_emision=fecha_emision,
-                numero_tramite=numero_tramite
+                codigo_verificacion=numero_tramite,
             )
             messages.success(request, f"✅ Certificado generado correctamente")
         except Exception as e:
@@ -992,7 +991,7 @@ def secretaria_certificados_carga_masiva(request):
 
         for fila in ws.iter_rows(min_row=2, values_only=True):
             try:
-                cedula_estudiante, tipo, fecha_emision = fila[0], fila[1], fila[2]
+                cedula_estudiante, tipo, _fecha_emision = fila[0], fila[1], fila[2]
 
                 if not all([cedula_estudiante, tipo]):
                     continue
@@ -1003,10 +1002,10 @@ def secretaria_certificados_carga_masiva(request):
 
                 numero_tramite = _generar_numero_tramite()
                 certificados_a_crear.append(Certificado(
-                    estudiante=estudiante,
+                    estudiante=estudiante.user,
+                    carrera=estudiante.carrera,
                     tipo=tipo,
-                    fecha_emision=fecha_emision or timezone.now().date(),
-                    numero_tramite=numero_tramite
+                    codigo_verificacion=numero_tramite,
                 ))
 
             except Exception:
@@ -1022,7 +1021,7 @@ def secretaria_certificados_carga_masiva(request):
 def _generar_numero_tramite():
     """Genera un número de trámite único"""
     fecha = datetime.now().strftime('%Y%m%d')
-    contador = Certificado.objects.filter(numero_tramite__startswith=fecha).count()
+    contador = Certificado.objects.filter(codigo_verificacion__startswith=fecha).count()
     return f"{fecha}-{str(contador + 1).zfill(5)}"
 
 
