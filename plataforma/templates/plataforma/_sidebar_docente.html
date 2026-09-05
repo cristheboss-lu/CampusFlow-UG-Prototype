@@ -1,0 +1,10 @@
+{% with url_name=request.resolver_match.url_name %}
+<a href="{% url 'dashboard_docente' %}"
+   class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors {% if 'docente' in url_name %}bg-white/10 font-medium{% endif %}">
+  <i class="ti ti-home text-lg" aria-hidden="true"></i> Panel principal
+</a>
+<a href="{% url 'biblioteca' %}"
+   class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors {% if url_name == 'biblioteca' %}bg-white/10 font-medium{% endif %}">
+  <i class="ti ti-book-2 text-lg" aria-hidden="true"></i> Biblioteca
+</a>
+{% endwith %}
