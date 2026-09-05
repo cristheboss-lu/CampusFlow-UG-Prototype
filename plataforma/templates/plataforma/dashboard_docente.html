@@ -34,11 +34,13 @@
         <h2 class="font-semibold text-navy">{{ item.materia.nombre }}</h2>
         <p class="text-xs text-gray-500">{{ item.materia.codigo }} · {{ item.materia.carrera.nombre }}</p>
       </div>
-      {% if item.planificacion %}
-        <span class="text-xs px-2 py-1 rounded-full bg-navy/10 text-navy">Planificada</span>
-      {% else %}
-        <span class="text-xs px-2 py-1 rounded-full bg-gold-light text-gold">Sin planificación</span>
-      {% endif %}
+      <a href="{% url 'docente_materia_planificacion' item.materia.id %}">
+        {% if item.planificacion %}
+          <span class="text-xs px-2 py-1 rounded-full bg-navy/10 text-navy hover:bg-navy/20">Planificada</span>
+        {% else %}
+          <span class="text-xs px-2 py-1 rounded-full bg-gold-light text-gold hover:bg-gold-light/70">Sin planificación</span>
+        {% endif %}
+      </a>
     </div>
     <div class="mt-4 flex gap-6 text-sm text-gray-600">
       <span>{{ item.estudiantes }} estudiante{{ item.estudiantes|pluralize:"s" }}</span>
@@ -49,6 +51,8 @@
       <a href="{% url 'docente_materia_tareas' item.materia.id %}" class="text-sm text-navy hover:underline">Gestionar tareas</a>
       <span class="text-gray-300 mx-2">·</span>
       <a href="{% url 'docente_materia_estudiantes' item.materia.id %}" class="text-sm text-navy hover:underline">Estudiantes</a>
+      <span class="text-gray-300 mx-2">·</span>
+      <a href="{% url 'docente_materia_planificacion' item.materia.id %}" class="text-sm text-navy hover:underline">Planificación</a>
     </div>
   </div>
   {% empty %}
