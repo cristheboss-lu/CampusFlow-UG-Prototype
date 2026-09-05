@@ -1,8 +1,9 @@
 from django.contrib import admin
 from .models import (
-    Carrera, Periodo, Materia, PerfilEstudiante,
+    Carrera, Periodo, Materia, PerfilEstudiante, PerfilDocente, PerfilUsuario,
     Matricula, Calificacion, Tarea, EntregaTarea,
-    Certificado, BibliotecaDigital, Mensaje
+    Certificado, BibliotecaDigital, Mensaje,
+    Planificacion, Parcial, Unidad, ActividadPlanificada
 )
 
 # ===== ESTRUCTURA ACADÉMICA =====
@@ -18,7 +19,7 @@ class PeriodoAdmin(admin.ModelAdmin):
 
 @admin.register(Materia)
 class MateriaAdmin(admin.ModelAdmin):
-    list_display = ('codigo', 'nombre', 'carrera', 'creditos')
+    list_display = ('codigo', 'nombre', 'carrera', 'docente', 'creditos')
     search_fields = ('codigo', 'nombre')
     list_filter = ('carrera',)
 
@@ -27,6 +28,18 @@ class PerfilEstudianteAdmin(admin.ModelAdmin):
     list_display = ('user', 'numero_matricula', 'carrera', 'activo')
     search_fields = ('numero_matricula', 'cedula')
     list_filter = ('carrera', 'activo')
+
+@admin.register(PerfilDocente)
+class PerfilDocenteAdmin(admin.ModelAdmin):
+    list_display = ('user', 'cedula', 'carrera', 'titulo_academico', 'activo')
+    search_fields = ('cedula', 'user__username')
+    list_filter = ('carrera', 'activo')
+
+@admin.register(PerfilUsuario)
+class PerfilUsuarioAdmin(admin.ModelAdmin):
+    list_display = ('user', 'rol')
+    list_filter = ('rol',)
+    search_fields = ('user__username', 'user__first_name', 'user__last_name')
 
 # ===== ACADÉMICO =====
 @admin.register(Matricula)
@@ -72,3 +85,42 @@ class MensajeAdmin(admin.ModelAdmin):
     list_display = ('nombre', 'email', 'asunto', 'fecha_envio', 'leido')
     list_filter = ('leido', 'fecha_envio')
     search_fields = ('nombre', 'email', 'asunto')
+
+
+# ===== PLANIFICACIÓN SEMESTRAL =====
+class ParcialInline(admin.TabularInline):
+    model = Parcial
+    extra = 0
+
+class UnidadInline(admin.TabularInline):
+    model = Unidad
+    extra = 0
+
+class ActividadPlanificadaInline(admin.TabularInline):
+    model = ActividadPlanificada
+    extra = 0
+
+@admin.register(Planificacion)
+class PlanificacionAdmin(admin.ModelAdmin):
+    list_display = ('materia', 'periodo', 'docente', 'fecha_actualizacion')
+    list_filter = ('periodo', 'materia__carrera')
+    search_fields = ('materia__codigo', 'materia__nombre')
+    inlines = [ParcialInline]
+
+@admin.register(Parcial)
+class ParcialAdmin(admin.ModelAdmin):
+    list_display = ('planificacion', 'numero', 'nombre', 'peso_formativa', 'peso_practica', 'peso_examen', 'peso_total')
+    list_filter = ('planificacion__periodo',)
+    inlines = [UnidadInline]
+
+@admin.register(Unidad)
+class UnidadAdmin(admin.ModelAdmin):
+    list_display = ('parcial', 'numero', 'tema')
+    search_fields = ('tema',)
+    inlines = [ActividadPlanificadaInline]
+
+@admin.register(ActividadPlanificada)
+class ActividadPlanificadaAdmin(admin.ModelAdmin):
+    list_display = ('nombre', 'unidad', 'semana', 'categoria', 'fecha_entrega', 'permite_entrega_tardia')
+    list_filter = ('categoria', 'permite_entrega_tardia', 'unidad__parcial__planificacion__periodo')
+    search_fields = ('nombre',)
