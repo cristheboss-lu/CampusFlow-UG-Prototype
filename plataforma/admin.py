@@ -57,7 +57,7 @@ class CalificacionAdmin(admin.ModelAdmin):
 # ===== RECURSOS =====
 @admin.register(Tarea)
 class TareaAdmin(admin.ModelAdmin):
-    list_display = ('materia', 'titulo', 'fecha_entrega')
+    list_display = ('materia', 'titulo', 'fecha_entrega', 'actividad')
     list_filter = ('materia', 'fecha_entrega')
     search_fields = ('titulo',)
 
