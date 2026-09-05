@@ -1376,3 +1376,154 @@ def dashboard_docente(request):
         'total_estudiantes': sum(t['estudiantes'] for t in tarjetas),
         'total_por_calificar': sum(t['por_calificar'] for t in tarjetas),
     })
+
+
+def _materia_del_docente(user, materia_id):
+    """
+    Devuelve (perfil_docente, materia) solo si la materia pertenece a ese docente.
+    Devuelve (perfil, None) o (None, None) cuando no debe tener acceso.
+    """
+    perfil = _perfil_docente_o_none(user)
+    if not perfil:
+        return None, None
+    materia = Materia.objects.select_related('carrera').filter(id=materia_id, docente=perfil).first()
+    return perfil, materia
+
+
+@login_required(login_url='login')
+@rol_requerido('docente')
+def docente_materia_tareas(request, materia_id):
+    """Tareas de una materia del docente: listarlas y crear nuevas"""
+    perfil, materia = _materia_del_docente(request.user, materia_id)
+    if not perfil:
+        messages.error(request, "❌ Tu perfil de docente no está configurado. Contacta a secretaría.")
+        return redirect('index')
+    if not materia:
+        messages.error(request, "❌ Esa materia no está asignada a ti")
+        return redirect('dashboard_docente')
+
+    if request.method == 'POST':
+        titulo = (request.POST.get('titulo') or '').strip()
+        descripcion = (request.POST.get('descripcion') or '').strip()
+        fecha_entrega = request.POST.get('fecha_entrega')
+
+        if not titulo or not fecha_entrega:
+            messages.error(request, "❌ El título y la fecha de entrega son obligatorios")
+            return redirect('docente_materia_tareas', materia_id=materia.id)
+
+        try:
+            fecha = datetime.strptime(fecha_entrega, '%Y-%m-%d').date()
+        except ValueError:
+            messages.error(request, "❌ Fecha de entrega inválida")
+            return redirect('docente_materia_tareas', materia_id=materia.id)
+
+        tarea = Tarea(
+            materia=materia,
+            titulo=titulo,
+            descripcion=descripcion,
+            fecha_entrega=fecha,
+        )
+        if request.FILES.get('pdf_guia'):
+            tarea.pdf_guia = request.FILES['pdf_guia']
+        tarea.save()
+
+        messages.success(request, f"✅ Tarea «{tarea.titulo}» creada")
+        return redirect('docente_materia_tareas', materia_id=materia.id)
+
+    tareas = Tarea.objects.filter(materia=materia).order_by('-fecha_entrega')
+    total_matriculados = Matricula.objects.filter(materia=materia).count()
+
+    entregas_por_tarea = {
+        fila['tarea_id']: fila['total']
+        for fila in EntregaTarea.objects.filter(tarea__materia=materia)
+                                        .values('tarea_id').annotate(total=Count('id'))
+    }
+    calificadas_por_tarea = {
+        fila['tarea_id']: fila['total']
+        for fila in EntregaTarea.objects.filter(tarea__materia=materia, calificacion__isnull=False)
+                                        .values('tarea_id').annotate(total=Count('id'))
+    }
+
+    filas = []
+    for tarea in tareas:
+        entregadas = entregas_por_tarea.get(tarea.id, 0)
+        filas.append({
+            'tarea': tarea,
+            'entregadas': entregadas,
+            'calificadas': calificadas_por_tarea.get(tarea.id, 0),
+            'por_calificar': entregadas - calificadas_por_tarea.get(tarea.id, 0),
+        })
+
+    return render(request, 'plataforma/docente_materia_tareas.html', {
+        'perfil': perfil,
+        'materia': materia,
+        'tareas': filas,
+        'total_matriculados': total_matriculados,
+    })
+
+
+@login_required(login_url='login')
+@rol_requerido('docente')
+def docente_tarea_entregas(request, tarea_id):
+    """Entregas de una tarea: quién entregó, quién no, y la nota puesta"""
+    perfil = _perfil_docente_o_none(request.user)
+    if not perfil:
+        messages.error(request, "❌ Tu perfil de docente no está configurado. Contacta a secretaría.")
+        return redirect('index')
+
+    tarea = Tarea.objects.select_related('materia', 'materia__carrera').filter(
+        id=tarea_id, materia__docente=perfil
+    ).first()
+    if not tarea:
+        messages.error(request, "❌ Esa tarea no pertenece a una materia tuya")
+        return redirect('dashboard_docente')
+
+    if request.method == 'POST':
+        entrega_id = request.POST.get('entrega_id')
+        nota_texto = (request.POST.get('calificacion') or '').strip()
+        observacion = (request.POST.get('observacion') or '').strip()
+
+        entrega = EntregaTarea.objects.filter(id=entrega_id, tarea=tarea).first()
+        if not entrega:
+            messages.error(request, "❌ Entrega no encontrada")
+            return redirect('docente_tarea_entregas', tarea_id=tarea.id)
+
+        try:
+            nota = float(nota_texto)
+        except ValueError:
+            messages.error(request, "❌ La calificación debe ser un número")
+            return redirect('docente_tarea_entregas', tarea_id=tarea.id)
+
+        if not 0 <= nota <= 100:
+            messages.error(request, "❌ La calificación debe estar entre 0 y 100")
+            return redirect('docente_tarea_entregas', tarea_id=tarea.id)
+
+        entrega.calificacion = nota
+        entrega.observacion = observacion
+        entrega.estado = 'Calificado'
+        entrega.save()
+
+        messages.success(request, f"✅ Calificación guardada para {entrega.estudiante.get_full_name()}")
+        return redirect('docente_tarea_entregas', tarea_id=tarea.id)
+
+    entregas = EntregaTarea.objects.filter(tarea=tarea).select_related('estudiante')
+    entregas_por_estudiante = {e.estudiante_id: e for e in entregas}
+
+    matriculas = Matricula.objects.filter(materia=tarea.materia).select_related('estudiante')
+
+    filas = []
+    for matricula in matriculas:
+        filas.append({
+            'estudiante': matricula.estudiante,
+            'entrega': entregas_por_estudiante.get(matricula.estudiante_id),
+        })
+    filas.sort(key=lambda f: (f['estudiante'].last_name, f['estudiante'].first_name))
+
+    return render(request, 'plataforma/docente_tarea_entregas.html', {
+        'perfil': perfil,
+        'tarea': tarea,
+        'materia': tarea.materia,
+        'filas': filas,
+        'total_entregadas': sum(1 for f in filas if f['entrega']),
+        'total_por_calificar': sum(1 for f in filas if f['entrega'] and f['entrega'].calificacion is None),
+    })
