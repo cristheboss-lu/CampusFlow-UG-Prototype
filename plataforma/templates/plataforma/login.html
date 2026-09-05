@@ -69,6 +69,7 @@
 
       <form method="post" action="{% url 'login' %}">
         {% csrf_token %}
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
 
         <label for="id_username" class="block text-sm text-gray-600 mb-1">Usuario</label>
         <div class="relative mb-4">

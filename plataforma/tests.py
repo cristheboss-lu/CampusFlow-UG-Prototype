@@ -595,3 +595,46 @@ class SecretariaCertificadosProcesarTests(TestCase):
         # tipos siempre) — es un chequeo inequívoco de qué filas se muestran.
         self.assertIn('TEST-0001', html)
         self.assertNotIn('TEST-0002', html)
+
+
+class LoginNextTests(TestCase):
+    """Regresión: login_estudiante debe respetar ?next= (validado) en vez de siempre usar el rol."""
+
+    def setUp(self):
+        self.carrera = Carrera.objects.create(nombre='Prueba', codigo='PRB')
+        self.user = User.objects.create_user('ln_est', 'ln_est@x.com', 'x')
+        PerfilUsuario.objects.create(user=self.user, rol='estudiante')
+        PerfilEstudiante.objects.create(user=self.user, carrera=self.carrera, cedula='9990001', numero_matricula='M-901')
+
+    def test_get_sin_login_redirige_con_next(self):
+        response = self.client.get('/portal-estudiantil/')
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/login/?next=/portal-estudiantil/')
+
+    def test_login_get_incluye_next_en_campo_oculto(self):
+        response = self.client.get(reverse('login'), {'next': '/portal-estudiantil/'})
+
+        self.assertContains(response, 'name="next" value="/portal-estudiantil/"')
+
+    def test_login_post_respeta_next_valido(self):
+        response = self.client.post(reverse('login'), {
+            'username': 'ln_est', 'password': 'x', 'next': '/portal-estudiantil/',
+        })
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/portal-estudiantil/')
+
+    def test_login_post_rechaza_next_externo(self):
+        response = self.client.post(reverse('login'), {
+            'username': 'ln_est', 'password': 'x', 'next': 'https://evil.com/robar',
+        })
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('dashboard_estudiante'))
+
+    def test_login_post_sin_next_usa_rol(self):
+        response = self.client.post(reverse('login'), {'username': 'ln_est', 'password': 'x'})
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('dashboard_estudiante'))

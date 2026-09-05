@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.db import transaction
 from django.db.models import Count, Avg
 from django.http import JsonResponse
@@ -143,9 +144,18 @@ def contacto_exito(request):
 # ===== AUTENTICACIÓN DE ESTUDIANTES =====
 
 def login_estudiante(request):
-    """Login unificado: redirige según el rol del usuario"""
+    """Login unificado: respeta ?next= si es seguro, si no redirige según el rol del usuario"""
+    next_url = request.POST.get('next') or request.GET.get('next')
+
+    def _redirect_next_o_rol(usuario):
+        if next_url and url_has_allowed_host_and_scheme(
+            url=next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+        ):
+            return redirect(next_url)
+        return _redirigir_segun_rol(usuario)
+
     if request.user.is_authenticated:
-        return _redirigir_segun_rol(request.user)
+        return _redirect_next_o_rol(request.user)
 
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -154,11 +164,11 @@ def login_estudiante(request):
 
         if usuario is not None:
             login(request, usuario)
-            return _redirigir_segun_rol(usuario)
+            return _redirect_next_o_rol(usuario)
         else:
             messages.error(request, '❌ Usuario o contraseña incorrectos')
 
-    return render(request, 'plataforma/login.html')
+    return render(request, 'plataforma/login.html', {'next': next_url})
 
 
 def _redirigir_segun_rol(usuario):
