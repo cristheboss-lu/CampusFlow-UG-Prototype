@@ -1,0 +1,55 @@
+{% extends 'plataforma/base.html' %}
+
+{% block title %}Planificación · {{ materia.codigo }} | Pelamacho{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+  <a href="{% url 'dashboard_docente' %}" class="text-sm text-gray-500 hover:text-navy">← Volver al panel</a>
+  <h1 class="text-2xl font-semibold text-navy mt-2">Planificación · {{ materia.nombre }}</h1>
+  <p class="text-sm text-gray-500">
+    {{ materia.codigo }} · {{ materia.carrera.nombre }}
+    {% if periodo %}· Período {{ periodo.nombre }}{% else %}· Sin período activo{% endif %}
+  </p>
+</div>
+
+{% if not planificacion %}
+<div class="bg-white rounded-xl border border-gray-100 px-5 py-10 text-center text-gray-400">
+  {% if periodo %}
+    Esta materia todavía no tiene una planificación para el período activo. Contacta a secretaría.
+  {% else %}
+    No hay un período activo configurado. Contacta a secretaría.
+  {% endif %}
+</div>
+{% else %}
+<div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
+      <tr>
+        <th class="px-5 py-3">Parcial</th>
+        <th class="px-5 py-3">Pesos (formativa / práctica / examen)</th>
+        <th class="px-5 py-3">Unidades</th>
+        <th class="px-5 py-3">Actividades</th>
+        <th class="px-5 py-3"></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for item in parciales %}
+      <tr class="hover:bg-gray-50">
+        <td class="px-5 py-3 text-gray-800">{% if item.parcial.nombre %}{{ item.parcial.nombre }}{% else %}Parcial {{ item.parcial.numero }}{% endif %}</td>
+        <td class="px-5 py-3 text-gray-600">
+          {{ item.parcial.peso_formativa }}% / {{ item.parcial.peso_practica }}% / {{ item.parcial.peso_examen }}%
+        </td>
+        <td class="px-5 py-3 text-gray-600">{{ item.total_unidades }}</td>
+        <td class="px-5 py-3 text-gray-600">{{ item.total_actividades }}</td>
+        <td class="px-5 py-3 text-right">
+          <a href="{% url 'docente_calificar_parcial' materia.id item.parcial.id %}" class="text-sm text-navy hover:underline">Calificar</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="text-center px-5 py-8 text-gray-400">Esta planificación todavía no tiene parciales</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

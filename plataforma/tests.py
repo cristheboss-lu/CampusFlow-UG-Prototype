@@ -151,3 +151,59 @@ class DocenteCalificarParcialTests(TestCase):
 
         response = self.client.get(url_otra)
         self.assertEqual(response.status_code, 302)
+
+
+class DocenteMateriaPlanificacionTests(TestCase):
+    """Regresión para la vista que lista los parciales de una materia y enlaza a calificarlos."""
+
+    def setUp(self):
+        self.carrera = Carrera.objects.create(nombre='Prueba', codigo='PRB')
+        self.periodo = Periodo.objects.create(
+            nombre='2026-2', fecha_inicio=date(2026, 9, 1), fecha_fin=date(2027, 1, 31), activo=True
+        )
+        self.user_docente = User.objects.create_user(
+            'tp_doc', 'tp_doc@x.com', 'x', first_name='Rosa', last_name='Vera'
+        )
+        PerfilUsuario.objects.create(user=self.user_docente, rol='docente')
+        self.docente = PerfilDocente.objects.create(user=self.user_docente, carrera=self.carrera, cedula='4440003')
+        self.materia = Materia.objects.create(
+            nombre='Algebra', codigo='ALG-502', carrera=self.carrera, docente=self.docente
+        )
+        self.client.force_login(self.user_docente)
+        self.url = reverse('docente_materia_planificacion', args=[self.materia.id])
+
+    def test_sin_planificacion_muestra_estado_vacio(self):
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'no tiene una planificación')
+
+    def test_lista_parciales_con_enlace_a_calificar(self):
+        planificacion = Planificacion.objects.create(
+            materia=self.materia, periodo=self.periodo, docente=self.docente
+        )
+        parcial = Parcial.objects.create(
+            planificacion=planificacion, numero=1, nombre='Parcial 1',
+            peso_formativa=30, peso_practica=30, peso_examen=40,
+        )
+        unidad = Unidad.objects.create(parcial=parcial, numero=1, tema='T')
+        ActividadPlanificada.objects.create(
+            unidad=unidad, semana=1, nombre='Foro', categoria='formativa', fecha_entrega=date(2026, 9, 10)
+        )
+        ActividadPlanificada.objects.create(
+            unidad=unidad, semana=2, nombre='Taller', categoria='practica', fecha_entrega=date(2026, 9, 15)
+        )
+
+        response = self.client.get(self.url)
+        html = response.content.decode()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('Parcial 1', html)
+        self.assertIn(reverse('docente_calificar_parcial', args=[self.materia.id, parcial.id]), html)
+
+    def test_materia_ajena_no_es_accesible(self):
+        otra_materia = Materia.objects.create(nombre='X', codigo='XXX-2', carrera=self.carrera, docente=None)
+        url_otra = reverse('docente_materia_planificacion', args=[otra_materia.id])
+
+        response = self.client.get(url_otra)
+        self.assertEqual(response.status_code, 302)

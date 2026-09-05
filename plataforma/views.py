@@ -1589,6 +1589,43 @@ def docente_materia_estudiantes(request, materia_id):
     })
 
 
+@login_required(login_url='login')
+@rol_requerido('docente')
+def docente_materia_planificacion(request, materia_id):
+    """Parciales de la planificación activa de una materia, con acceso para calificarlos"""
+    perfil, materia = _materia_del_docente(request.user, materia_id)
+    if not perfil:
+        messages.error(request, "❌ Tu perfil de docente no está configurado. Contacta a secretaría.")
+        return redirect('index')
+    if not materia:
+        messages.error(request, "❌ Esa materia no está asignada a ti")
+        return redirect('dashboard_docente')
+
+    periodo = Periodo.objects.filter(activo=True).order_by('-fecha_inicio').first()
+    planificacion = None
+    if periodo:
+        planificacion = Planificacion.objects.filter(materia=materia, periodo=periodo).first()
+
+    parciales = []
+    if planificacion:
+        parciales_qs = planificacion.parciales.prefetch_related('unidades__actividades').order_by('numero')
+        for parcial in parciales_qs:
+            unidades = list(parcial.unidades.all())
+            parciales.append({
+                'parcial': parcial,
+                'total_unidades': len(unidades),
+                'total_actividades': sum(len(unidad.actividades.all()) for unidad in unidades),
+            })
+
+    return render(request, 'plataforma/docente_materia_planificacion.html', {
+        'perfil': perfil,
+        'materia': materia,
+        'periodo': periodo,
+        'planificacion': planificacion,
+        'parciales': parciales,
+    })
+
+
 def _promedio(valores):
     """Promedio simple, o None si no hay notas."""
     return sum(valores) / len(valores) if valores else None
