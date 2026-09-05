@@ -11,7 +11,7 @@ from django.db.models import Count, Avg
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from openpyxl import load_workbook
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 from .models import (
     Materia, Mensaje, PerfilEstudiante, PerfilDocente, PerfilUsuario, 
@@ -1590,10 +1590,56 @@ def docente_materia_estudiantes(request, materia_id):
     })
 
 
+# Reparto estándar de 16 semanas entre los 3 parciales. La última semana de
+# cada parcial se pre-marca como examen; el resto queda como formativa. El
+# docente confirma/ajusta la categoría real de cada actividad después.
+_SEMANAS_POR_PARCIAL = [
+    (1, range(1, 6)),    # Parcial 1: semanas 1-5
+    (2, range(6, 11)),   # Parcial 2: semanas 6-10
+    (3, range(11, 17)),  # Parcial 3: semanas 11-16
+]
+
+
+def _generar_planificacion_estandar(materia, periodo, perfil_docente):
+    """
+    Crea el esqueleto estándar (3 parciales, 16 semanas) para una materia sin
+    planificación en el período activo. Cada semana queda como una actividad
+    placeholder sin archivo; el docente la llena después con contenido real
+    (nombre, categoría, archivo, fecha límite y reglas de entrega tardía).
+    """
+    planificacion = Planificacion.objects.create(
+        materia=materia, periodo=periodo, docente=perfil_docente,
+    )
+
+    for numero_parcial, semanas in _SEMANAS_POR_PARCIAL:
+        parcial = Parcial.objects.create(
+            planificacion=planificacion,
+            numero=numero_parcial,
+            nombre=f'Parcial {numero_parcial}',
+        )
+        semanas = list(semanas)
+        unidad = Unidad.objects.create(
+            parcial=parcial,
+            numero=1,
+            tema=f'Semanas {semanas[0]}-{semanas[-1]}',
+        )
+        ultima_semana = semanas[-1]
+        for semana in semanas:
+            ActividadPlanificada.objects.create(
+                unidad=unidad,
+                semana=semana,
+                nombre=f'Semana {semana} - Actividad',
+                categoria='examen' if semana == ultima_semana else 'formativa',
+                fecha_entrega=periodo.fecha_inicio + timedelta(days=7 * semana),
+            )
+
+    return planificacion
+
+
 @login_required(login_url='login')
 @rol_requerido('docente')
 def docente_materia_planificacion(request, materia_id):
-    """Parciales de la planificación activa de una materia, con acceso para calificarlos"""
+    """Planificación de una materia: unidades y actividades semanales para llenar con contenido real"""
     perfil, materia = _materia_del_docente(request.user, materia_id)
     if not perfil:
         messages.error(request, "❌ Tu perfil de docente no está configurado. Contacta a secretaría.")
@@ -1606,17 +1652,21 @@ def docente_materia_planificacion(request, materia_id):
     planificacion = None
     if periodo:
         planificacion = Planificacion.objects.filter(materia=materia, periodo=periodo).first()
+        if not planificacion:
+            planificacion = _generar_planificacion_estandar(materia, periodo, perfil)
 
     parciales = []
     if planificacion:
         parciales_qs = planificacion.parciales.prefetch_related('unidades__actividades').order_by('numero')
         for parcial in parciales_qs:
-            unidades = list(parcial.unidades.all())
-            parciales.append({
-                'parcial': parcial,
-                'total_unidades': len(unidades),
-                'total_actividades': sum(len(unidad.actividades.all()) for unidad in unidades),
-            })
+            unidades = [
+                {
+                    'unidad': unidad,
+                    'actividades': list(unidad.actividades.order_by('semana')),
+                }
+                for unidad in parcial.unidades.all()
+            ]
+            parciales.append({'parcial': parcial, 'unidades': unidades})
 
     return render(request, 'plataforma/docente_materia_planificacion.html', {
         'perfil': perfil,
@@ -1624,7 +1674,82 @@ def docente_materia_planificacion(request, materia_id):
         'periodo': periodo,
         'planificacion': planificacion,
         'parciales': parciales,
+        'categorias': ActividadPlanificada.CATEGORIAS,
     })
+
+
+@login_required(login_url='login')
+@rol_requerido('docente')
+@require_http_methods(["POST"])
+def docente_actividad_editar(request, actividad_id):
+    """Llena una actividad planificada con contenido real: nombre, categoría, archivo y reglas de entrega"""
+    perfil = _perfil_docente_o_none(request.user)
+    if not perfil:
+        messages.error(request, "❌ Tu perfil de docente no está configurado. Contacta a secretaría.")
+        return redirect('index')
+
+    actividad = ActividadPlanificada.objects.select_related(
+        'unidad__parcial__planificacion__materia'
+    ).filter(
+        id=actividad_id, unidad__parcial__planificacion__materia__docente=perfil
+    ).first()
+    if not actividad:
+        messages.error(request, "❌ Esa actividad no pertenece a una materia tuya")
+        return redirect('dashboard_docente')
+
+    materia = actividad.unidad.parcial.planificacion.materia
+    volver = redirect('docente_materia_planificacion', materia_id=materia.id)
+
+    nombre = (request.POST.get('nombre') or '').strip()
+    categoria = request.POST.get('categoria')
+    fecha_entrega_texto = request.POST.get('fecha_entrega')
+    permite_entrega_tardia = request.POST.get('permite_entrega_tardia') == '1'
+    fecha_limite_tardia_texto = request.POST.get('fecha_limite_tardia')
+    penalizacion_tardia_texto = request.POST.get('penalizacion_tardia') or '0'
+
+    if not nombre:
+        messages.error(request, "❌ El nombre de la actividad es obligatorio")
+        return volver
+
+    if categoria not in dict(ActividadPlanificada.CATEGORIAS):
+        messages.error(request, "❌ Categoría inválida")
+        return volver
+
+    try:
+        fecha_entrega = datetime.strptime(fecha_entrega_texto, '%Y-%m-%d').date()
+    except (TypeError, ValueError):
+        messages.error(request, "❌ Fecha límite inválida")
+        return volver
+
+    fecha_limite_tardia = None
+    if permite_entrega_tardia:
+        try:
+            fecha_limite_tardia = datetime.strptime(fecha_limite_tardia_texto, '%Y-%m-%d').date()
+        except (TypeError, ValueError):
+            messages.error(request, "❌ Indica la fecha límite para entregas tardías")
+            return volver
+        if fecha_limite_tardia < fecha_entrega:
+            messages.error(request, "❌ La fecha límite tardía debe ser posterior a la fecha límite")
+            return volver
+
+    try:
+        penalizacion_tardia = max(0, min(100, int(penalizacion_tardia_texto)))
+    except ValueError:
+        messages.error(request, "❌ La penalización debe ser un número entre 0 y 100")
+        return volver
+
+    actividad.nombre = nombre
+    actividad.categoria = categoria
+    actividad.fecha_entrega = fecha_entrega
+    actividad.permite_entrega_tardia = permite_entrega_tardia
+    actividad.fecha_limite_tardia = fecha_limite_tardia if permite_entrega_tardia else None
+    actividad.penalizacion_tardia = penalizacion_tardia if permite_entrega_tardia else 0
+    if request.FILES.get('archivo'):
+        actividad.archivo = request.FILES['archivo']
+    actividad.save()
+
+    messages.success(request, f"✅ «{actividad.nombre}» actualizada")
+    return volver
 
 
 def _promedio(valores):

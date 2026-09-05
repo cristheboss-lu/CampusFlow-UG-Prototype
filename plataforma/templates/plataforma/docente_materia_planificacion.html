@@ -14,42 +14,88 @@
 
 {% if not planificacion %}
 <div class="bg-white rounded-xl border border-gray-100 px-5 py-10 text-center text-gray-400">
-  {% if periodo %}
-    Esta materia todavía no tiene una planificación para el período activo. Contacta a secretaría.
-  {% else %}
-    No hay un período activo configurado. Contacta a secretaría.
-  {% endif %}
+  No hay un período activo configurado. Contacta a secretaría.
 </div>
 {% else %}
-<div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
-  <table class="w-full text-sm">
-    <thead class="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
-      <tr>
-        <th class="px-5 py-3">Parcial</th>
-        <th class="px-5 py-3">Pesos (formativa / práctica / examen)</th>
-        <th class="px-5 py-3">Unidades</th>
-        <th class="px-5 py-3">Actividades</th>
-        <th class="px-5 py-3"></th>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-gray-100">
-      {% for item in parciales %}
-      <tr class="hover:bg-gray-50">
-        <td class="px-5 py-3 text-gray-800">{% if item.parcial.nombre %}{{ item.parcial.nombre }}{% else %}Parcial {{ item.parcial.numero }}{% endif %}</td>
-        <td class="px-5 py-3 text-gray-600">
-          {{ item.parcial.peso_formativa }}% / {{ item.parcial.peso_practica }}% / {{ item.parcial.peso_examen }}%
-        </td>
-        <td class="px-5 py-3 text-gray-600">{{ item.total_unidades }}</td>
-        <td class="px-5 py-3 text-gray-600">{{ item.total_actividades }}</td>
-        <td class="px-5 py-3 text-right">
-          <a href="{% url 'docente_calificar_parcial' materia.id item.parcial.id %}" class="text-sm text-navy hover:underline">Calificar</a>
-        </td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="5" class="text-center px-5 py-8 text-gray-400">Esta planificación todavía no tiene parciales</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+
+<div class="space-y-4">
+  {% for item in parciales %}
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="flex items-center justify-between px-5 py-4 bg-gray-50 border-b border-gray-100">
+      <div>
+        <h2 class="font-semibold text-navy">{{ item.parcial.nombre|default:item.parcial.numero }}</h2>
+        <p class="text-xs text-gray-500">
+          Pesos: {{ item.parcial.peso_formativa }}% formativa · {{ item.parcial.peso_practica }}% práctica · {{ item.parcial.peso_examen }}% examen
+        </p>
+      </div>
+      <a href="{% url 'docente_calificar_parcial' materia.id item.parcial.id %}" class="text-sm text-navy hover:underline whitespace-nowrap">Calificar parcial</a>
+    </div>
+
+    {% for u in item.unidades %}
+    <details class="group border-b border-gray-100 last:border-b-0" {% if forloop.first %}open{% endif %}>
+      <summary class="cursor-pointer select-none px-5 py-3 flex items-center justify-between hover:bg-gray-50">
+        <span class="text-sm font-medium text-gray-700">{{ u.unidad.tema }}</span>
+        <i class="ti ti-chevron-down text-gray-400 transition-transform group-open:rotate-180" aria-hidden="true"></i>
+      </summary>
+
+      <div class="px-5 pb-5 space-y-3">
+        {% for actividad in u.actividades %}
+        <form method="post" enctype="multipart/form-data"
+              action="{% url 'docente_actividad_editar' actividad.id %}"
+              class="border border-gray-100 rounded-lg p-4 grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+          {% csrf_token %}
+          <div class="md:col-span-3">
+            <label class="block text-xs text-gray-400 mb-1">Semana {{ actividad.semana }} · Nombre</label>
+            <input type="text" name="nombre" value="{{ actividad.nombre }}" required
+                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-xs text-gray-400 mb-1">Categoría</label>
+            <select name="categoria" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+              {% for valor, etiqueta in categorias %}
+              <option value="{{ valor }}" {% if actividad.categoria == valor %}selected{% endif %}>{{ etiqueta }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-xs text-gray-400 mb-1">Fecha límite</label>
+            <input type="date" name="fecha_entrega" value="{{ actividad.fecha_entrega|date:'Y-m-d' }}" required
+                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-xs text-gray-400 mb-1">Archivo</label>
+            {% if actividad.archivo %}
+              <a href="{{ actividad.archivo.url }}" target="_blank" class="block text-xs text-navy hover:underline mb-1 truncate">Ver archivo actual</a>
+            {% endif %}
+            <input type="file" name="archivo" class="w-full text-xs">
+          </div>
+          <div class="md:col-span-2 flex items-center gap-2">
+            <input type="checkbox" name="permite_entrega_tardia" value="1" id="tardia-{{ actividad.id }}"
+                   {% if actividad.permite_entrega_tardia %}checked{% endif %}
+                   class="rounded border-gray-300">
+            <label for="tardia-{{ actividad.id }}" class="text-xs text-gray-600">Permite entrega tardía</label>
+          </div>
+          <div class="md:col-span-1">
+            <button type="submit" class="w-full px-3 py-2 text-sm bg-navy text-white rounded-lg hover:bg-navy-light">Guardar</button>
+          </div>
+
+          <div class="md:col-span-6">
+            <label class="block text-xs text-gray-400 mb-1">Fecha límite tardía</label>
+            <input type="date" name="fecha_limite_tardia" value="{{ actividad.fecha_limite_tardia|date:'Y-m-d' }}"
+                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+          </div>
+          <div class="md:col-span-3">
+            <label class="block text-xs text-gray-400 mb-1">Penalización tardía (%)</label>
+            <input type="number" name="penalizacion_tardia" min="0" max="100" value="{{ actividad.penalizacion_tardia }}"
+                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+          </div>
+        </form>
+        {% endfor %}
+      </div>
+    </details>
+    {% endfor %}
+  </div>
+  {% endfor %}
 </div>
 {% endif %}
 {% endblock %}

@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 
 from django.contrib.auth.models import User
 from django.test import TestCase
@@ -172,11 +172,51 @@ class DocenteMateriaPlanificacionTests(TestCase):
         self.client.force_login(self.user_docente)
         self.url = reverse('docente_materia_planificacion', args=[self.materia.id])
 
-    def test_sin_planificacion_muestra_estado_vacio(self):
+    def test_sin_periodo_activo_muestra_estado_vacio(self):
+        self.periodo.activo = False
+        self.periodo.save(update_fields=['activo'])
+
         response = self.client.get(self.url)
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'no tiene una planificación')
+        self.assertContains(response, 'No hay un período activo')
+
+    def test_sin_planificacion_la_genera_automaticamente(self):
+        self.assertFalse(Planificacion.objects.filter(materia=self.materia, periodo=self.periodo).exists())
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        planificacion = Planificacion.objects.get(materia=self.materia, periodo=self.periodo)
+
+        parciales = list(planificacion.parciales.order_by('numero'))
+        self.assertEqual(len(parciales), 3)
+        for parcial in parciales:
+            self.assertEqual((parcial.peso_formativa, parcial.peso_practica, parcial.peso_examen), (30, 30, 40))
+
+        semanas_por_parcial = [
+            list(ActividadPlanificada.objects.filter(unidad__parcial=parcial).order_by('semana').values_list('semana', flat=True))
+            for parcial in parciales
+        ]
+        self.assertEqual(semanas_por_parcial, [list(range(1, 6)), list(range(6, 11)), list(range(11, 17))])
+
+        # La última semana de cada parcial es examen; el resto, formativa.
+        for parcial, semanas in zip(parciales, semanas_por_parcial):
+            categorias = {
+                a.semana: a.categoria
+                for a in ActividadPlanificada.objects.filter(unidad__parcial=parcial)
+            }
+            self.assertEqual(categorias[semanas[-1]], 'examen')
+            for semana in semanas[:-1]:
+                self.assertEqual(categorias[semana], 'formativa')
+
+        primera_actividad = ActividadPlanificada.objects.get(unidad__parcial=parciales[0], semana=1)
+        self.assertEqual(primera_actividad.fecha_entrega, self.periodo.fecha_inicio + timedelta(days=7))
+        self.assertFalse(primera_actividad.archivo)
+
+        # Una segunda visita no debe duplicar la planificación.
+        self.client.get(self.url)
+        self.assertEqual(Planificacion.objects.filter(materia=self.materia, periodo=self.periodo).count(), 1)
 
     def test_lista_parciales_con_enlace_a_calificar(self):
         planificacion = Planificacion.objects.create(
@@ -207,3 +247,96 @@ class DocenteMateriaPlanificacionTests(TestCase):
 
         response = self.client.get(url_otra)
         self.assertEqual(response.status_code, 302)
+
+
+class DocenteActividadEditarTests(TestCase):
+    """Regresión para la edición de una actividad planificada (llenar el esqueleto con contenido real)."""
+
+    def setUp(self):
+        self.carrera = Carrera.objects.create(nombre='Prueba', codigo='PRB')
+        self.periodo = Periodo.objects.create(
+            nombre='2026-2', fecha_inicio=date(2026, 9, 1), fecha_fin=date(2027, 1, 31), activo=True
+        )
+        self.user_docente = User.objects.create_user(
+            'ta_doc', 'ta_doc@x.com', 'x', first_name='Rosa', last_name='Vera'
+        )
+        PerfilUsuario.objects.create(user=self.user_docente, rol='docente')
+        self.docente = PerfilDocente.objects.create(user=self.user_docente, carrera=self.carrera, cedula='4440004')
+        self.materia = Materia.objects.create(
+            nombre='Algebra', codigo='ALG-503', carrera=self.carrera, docente=self.docente
+        )
+        self.planificacion = Planificacion.objects.create(
+            materia=self.materia, periodo=self.periodo, docente=self.docente
+        )
+        self.parcial = Parcial.objects.create(planificacion=self.planificacion, numero=1, nombre='Parcial 1')
+        self.unidad = Unidad.objects.create(parcial=self.parcial, numero=1, tema='Semanas 1-5')
+        self.actividad = ActividadPlanificada.objects.create(
+            unidad=self.unidad, semana=1, nombre='Semana 1 - Actividad',
+            categoria='formativa', fecha_entrega=date(2026, 9, 8),
+        )
+        self.client.force_login(self.user_docente)
+        self.url = reverse('docente_actividad_editar', args=[self.actividad.id])
+
+    def test_edita_nombre_categoria_y_fecha(self):
+        response = self.client.post(self.url, {
+            'nombre': 'Foro de introducción',
+            'categoria': 'practica',
+            'fecha_entrega': '2026-09-12',
+            'penalizacion_tardia': '0',
+        }, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.actividad.refresh_from_db()
+        self.assertEqual(self.actividad.nombre, 'Foro de introducción')
+        self.assertEqual(self.actividad.categoria, 'practica')
+        self.assertEqual(self.actividad.fecha_entrega, date(2026, 9, 12))
+        self.assertFalse(self.actividad.permite_entrega_tardia)
+        self.assertIsNone(self.actividad.fecha_limite_tardia)
+
+    def test_entrega_tardia_requiere_fecha_limite_posterior(self):
+        response = self.client.post(self.url, {
+            'nombre': 'Foro',
+            'categoria': 'formativa',
+            'fecha_entrega': '2026-09-12',
+            'permite_entrega_tardia': '1',
+            'fecha_limite_tardia': '2026-09-10',  # anterior a fecha_entrega: invalido
+            'penalizacion_tardia': '10',
+        }, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.actividad.refresh_from_db()
+        # No debe haberse guardado nada: sigue con los valores originales.
+        self.assertEqual(self.actividad.nombre, 'Semana 1 - Actividad')
+        self.assertFalse(self.actividad.permite_entrega_tardia)
+
+    def test_entrega_tardia_valida_se_guarda(self):
+        response = self.client.post(self.url, {
+            'nombre': 'Foro',
+            'categoria': 'formativa',
+            'fecha_entrega': '2026-09-12',
+            'permite_entrega_tardia': '1',
+            'fecha_limite_tardia': '2026-09-15',
+            'penalizacion_tardia': '10',
+        }, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.actividad.refresh_from_db()
+        self.assertTrue(self.actividad.permite_entrega_tardia)
+        self.assertEqual(self.actividad.fecha_limite_tardia, date(2026, 9, 15))
+        self.assertEqual(self.actividad.penalizacion_tardia, 10)
+
+    def test_actividad_de_otro_docente_no_es_editable(self):
+        otro_docente_user = User.objects.create_user('ta_doc2', 'ta_doc2@x.com', 'x')
+        PerfilUsuario.objects.create(user=otro_docente_user, rol='docente')
+        otro_docente = PerfilDocente.objects.create(user=otro_docente_user, carrera=self.carrera, cedula='4440005')
+        self.client.force_login(otro_docente_user)
+
+        response = self.client.post(self.url, {
+            'nombre': 'Hackeo',
+            'categoria': 'formativa',
+            'fecha_entrega': '2026-09-12',
+        })
+
+        self.assertEqual(response.status_code, 302)
+        self.actividad.refresh_from_db()
+        self.assertEqual(self.actividad.nombre, 'Semana 1 - Actividad')
