@@ -65,6 +65,7 @@ urlpatterns = [
     # ===== SECCIÓN: CERTIFICADOS =====
     path('secretaria/certificados/', views.secretaria_certificados, name='secretaria_certificados'),
     path('secretaria/certificados/<int:certificado_id>/eliminar/', views.secretaria_certificados_eliminar, name='secretaria_certificados_eliminar'),
+    path('secretaria/certificados/<int:certificado_id>/procesar/', views.secretaria_certificados_procesar, name='secretaria_certificados_procesar'),
     path('secretaria/certificados/carga-masiva/', views.secretaria_certificados_carga_masiva, name='secretaria_certificados_carga_masiva'),
     path('certificados/<int:certificado_id>/descargar/', views.descargar_certificado, name='descargar_certificado'),
 

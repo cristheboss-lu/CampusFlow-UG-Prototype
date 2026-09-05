@@ -11,7 +11,7 @@ from django.db.models import Count, Avg
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from openpyxl import load_workbook
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import json
 from .models import (
     Materia, Mensaje, PerfilEstudiante, PerfilDocente, PerfilUsuario, 
@@ -54,10 +54,55 @@ def aulas_virtuales(request):
         return redirect('dashboard_estudiante')
     return redirect('login')
 
+@login_required(login_url='login')
+@rol_requerido('estudiante')
 def portal_estudiantil(request):
-    """Portal estudiantil - lista de estudiantes con su carrera"""
-    estudiantes = PerfilEstudiante.objects.select_related('user', 'carrera').filter(activo=True)
-    return render(request, 'plataforma/portal_estudiantil.html', {'estudiantes': estudiantes})
+    """Portal administrativo del estudiante: kardex, datos personales, matrícula activa y certificados"""
+    perfil = PerfilEstudiante.objects.select_related('carrera').filter(user=request.user).first()
+    if not perfil:
+        messages.error(request, "❌ Tu perfil de estudiante no está configurado. Contacta a secretaría.")
+        return redirect('index')
+
+    if request.method == 'POST':
+        tipo = request.POST.get('tipo')
+        if tipo not in dict(Certificado.TIPOS):
+            messages.error(request, "❌ Selecciona un tipo de certificado válido")
+            return redirect('portal_estudiantil')
+
+        Certificado.objects.create(
+            estudiante=request.user,
+            carrera=perfil.carrera,
+            tipo=tipo,
+            estado='Pendiente',
+            codigo_verificacion=_generar_numero_tramite(),
+        )
+        messages.success(request, "✅ Solicitud de certificado enviada. Secretaría la revisará pronto.")
+        return redirect('portal_estudiantil')
+
+    # Kardex: misma fuente de datos que dashboard_estudiante, sin filtrar por período.
+    cursos = _cursos_con_progreso(request.user)
+    matriculas = [c['matricula'] for c in cursos]
+    notas = [m.nota_final for m in matriculas if m.nota_final is not None]
+    promedio_general = round(sum(notas) / len(notas), 1) if notas else None
+    total_creditos = sum(m.materia.creditos for m in matriculas)
+
+    periodo_activo = Periodo.objects.filter(activo=True).order_by('-fecha_inicio').first()
+    matriculas_activas = [
+        c for c in cursos if periodo_activo and c['matricula'].periodo_id == periodo_activo.id
+    ]
+
+    certificados = Certificado.objects.filter(estudiante=request.user).order_by('-id')
+
+    return render(request, 'plataforma/portal_estudiantil.html', {
+        'perfil': perfil,
+        'cursos': cursos,
+        'promedio_general': promedio_general,
+        'total_creditos': total_creditos,
+        'periodo_activo': periodo_activo,
+        'matriculas_activas': matriculas_activas,
+        'certificados': certificados,
+        'tipos_certificado': Certificado.TIPOS,
+    })
 
 def biblioteca(request):
     """Biblioteca digital"""
@@ -134,15 +179,18 @@ def logout_estudiante(request):
     logout(request)
     return redirect('index')
 
-@login_required(login_url='login')
-def dashboard_estudiante(request):
-    """Panel del estudiante: sus cursos con % completado y sus próximas entregas reales"""
-    matriculas = Matricula.objects.filter(estudiante=request.user).select_related('materia', 'materia__carrera', 'periodo')
+def _cursos_con_progreso(user):
+    """
+    Todas las Matricula del estudiante (sin filtrar por período) con su
+    % completado (entregas / tareas totales de esa materia). Fuente única
+    para dashboard_estudiante y el Kardex del portal, para que ambos
+    muestren siempre los mismos números.
+    """
+    matriculas = Matricula.objects.filter(estudiante=user).select_related('materia', 'materia__carrera', 'periodo')
     materias_ids = matriculas.values_list('materia_id', flat=True)
 
     tareas = Tarea.objects.filter(materia_id__in=materias_ids).select_related('materia')
-    entregas_usuario = EntregaTarea.objects.filter(estudiante=request.user).select_related('tarea')
-    entregas_dict = {e.tarea_id: e for e in entregas_usuario}
+    entregas_dict = {e.tarea_id: e for e in EntregaTarea.objects.filter(estudiante=user).select_related('tarea')}
 
     tareas_por_materia = {}
     completadas_por_materia = {}
@@ -161,6 +209,18 @@ def dashboard_estudiante(request):
             'tareas_completadas': completadas,
             'porcentaje_completado': round(completadas / total * 100) if total else 0,
         })
+    return cursos
+
+
+@login_required(login_url='login')
+def dashboard_estudiante(request):
+    """Panel del estudiante: sus cursos con % completado y sus próximas entregas reales"""
+    cursos = _cursos_con_progreso(request.user)
+    materias_ids = [c['matricula'].materia_id for c in cursos]
+
+    tareas = Tarea.objects.filter(materia_id__in=materias_ids).select_related('materia')
+    entregas_usuario = EntregaTarea.objects.filter(estudiante=request.user).select_related('tarea')
+    entregas_dict = {e.tarea_id: e for e in entregas_usuario}
 
     hoy = timezone.now().date()
     proximas_entregas = [
@@ -969,11 +1029,14 @@ def secretaria_matriculas_carga_masiva(request):
 def secretaria_certificados(request):
     """Gestión de certificados"""
     tipo_filtro = request.GET.get('tipo', '')
-    
+    estado_filtro = request.GET.get('estado', '')
+
     certificados = Certificado.objects.select_related('estudiante').all()
     if tipo_filtro:
         certificados = certificados.filter(tipo=tipo_filtro)
-    
+    if estado_filtro:
+        certificados = certificados.filter(estado=estado_filtro)
+
     estudiantes = PerfilEstudiante.objects.select_related('user').filter(activo=True)
 
     if request.method == 'POST':
@@ -987,6 +1050,8 @@ def secretaria_certificados(request):
                 estudiante=estudiante.user,
                 carrera=estudiante.carrera,
                 tipo=tipo,
+                estado='Emitido',
+                fecha_emision=timezone.now().date(),
                 codigo_verificacion=numero_tramite,
             )
             messages.success(request, f"✅ Certificado generado correctamente")
@@ -999,7 +1064,32 @@ def secretaria_certificados(request):
         'certificados': certificados,
         'estudiantes': estudiantes,
         'tipo_filtro': tipo_filtro,
+        'estado_filtro': estado_filtro,
+        'total_pendientes': Certificado.objects.filter(estado='Pendiente').count(),
     })
+
+
+@login_required(login_url='login')
+@rol_requerido('admin')
+@require_http_methods(["POST"])
+def secretaria_certificados_procesar(request, certificado_id):
+    """Aprobar (emitir) o rechazar una solicitud de certificado pendiente"""
+    certificado = get_object_or_404(Certificado, id=certificado_id)
+    accion = request.POST.get('accion')
+
+    if accion == 'aprobar':
+        certificado.estado = 'Emitido'
+        certificado.fecha_emision = timezone.now().date()
+        certificado.save(update_fields=['estado', 'fecha_emision'])
+        messages.success(request, f"✅ Certificado de {certificado.estudiante.get_full_name()} emitido")
+    elif accion == 'rechazar':
+        certificado.estado = 'Rechazado'
+        certificado.save(update_fields=['estado'])
+        messages.success(request, f"✅ Solicitud de {certificado.estudiante.get_full_name()} rechazada")
+    else:
+        messages.error(request, "❌ Acción inválida")
+
+    return redirect('secretaria_certificados')
 
 
 @login_required(login_url='login')
@@ -1034,7 +1124,7 @@ def secretaria_certificados_carga_masiva(request):
 
         for fila in ws.iter_rows(min_row=2, values_only=True):
             try:
-                cedula_estudiante, tipo, _fecha_emision = fila[0], fila[1], fila[2]
+                cedula_estudiante, tipo, fecha_emision_celda = fila[0], fila[1], fila[2]
 
                 if not all([cedula_estudiante, tipo]):
                     continue
@@ -1043,11 +1133,20 @@ def secretaria_certificados_carga_masiva(request):
                 if not estudiante:
                     continue
 
+                if isinstance(fecha_emision_celda, datetime):
+                    fecha_emision = fecha_emision_celda.date()
+                elif isinstance(fecha_emision_celda, date):
+                    fecha_emision = fecha_emision_celda
+                else:
+                    fecha_emision = timezone.now().date()
+
                 numero_tramite = _generar_numero_tramite()
                 certificados_a_crear.append(Certificado(
                     estudiante=estudiante.user,
                     carrera=estudiante.carrera,
                     tipo=tipo,
+                    estado='Emitido',
+                    fecha_emision=fecha_emision,
                     codigo_verificacion=numero_tramite,
                 ))
 
@@ -1069,13 +1168,17 @@ def _generar_numero_tramite():
 
 
 @login_required(login_url='login')
-@rol_requerido('admin')
 def descargar_certificado(request, certificado_id):
-    """Descargar certificado (PDF)"""
+    """Descargar certificado (PDF): accesible para secretaría o el estudiante dueño del certificado"""
     certificado = get_object_or_404(Certificado, id=certificado_id)
+    es_admin = PerfilUsuario.objects.filter(user=request.user, rol='admin').exists()
+    if not es_admin and certificado.estudiante_id != request.user.id:
+        messages.error(request, "❌ No tienes acceso a ese certificado")
+        return redirect('index')
+
     # TODO: implementar generación de PDF
     messages.info(request, "📄 Función de descarga PDF en construcción")
-    return redirect('secretaria_certificados')
+    return redirect('secretaria_certificados' if es_admin else 'portal_estudiantil')
 
 
 # ===== IMPORTAR DATOS DESDE EXCEL (legacy - mantener compatibilidad) =====
