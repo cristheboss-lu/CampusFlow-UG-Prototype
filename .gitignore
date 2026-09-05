@@ -1,2 +1,7 @@
 __pycache__/
 *.pyc
+
+# Herramientas locales de Claude Code (skills, locks de sesion) - no es codigo de la app
+.agents/
+.claude/
+skills-lock.json
