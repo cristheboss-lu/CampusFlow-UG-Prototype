@@ -1,0 +1,67 @@
+{% extends 'plataforma/base.html' %}
+
+{% block title %}Entregas · {{ tarea.titulo }} | Pelamacho{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+  <a href="{% url 'docente_materia_tareas' materia.id %}" class="text-sm text-gray-500 hover:text-navy">← Volver a tareas</a>
+  <h1 class="text-2xl font-semibold text-navy mt-2">{{ tarea.titulo }}</h1>
+  <p class="text-sm text-gray-500">
+    {{ materia.codigo }} · Entrega {{ tarea.fecha_entrega }} ·
+    {{ total_entregadas }} entregada{{ total_entregadas|pluralize:"s" }} · {{ total_por_calificar }} por calificar
+  </p>
+</div>
+
+<div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
+      <tr>
+        <th class="px-5 py-3">Estudiante</th>
+        <th class="px-5 py-3">Estado</th>
+        <th class="px-5 py-3">Archivo</th>
+        <th class="px-5 py-3">Calificación</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for fila in filas %}
+      <tr class="hover:bg-gray-50">
+        <td class="px-5 py-3 text-gray-800">{{ fila.estudiante.get_full_name|default:fila.estudiante.username }}</td>
+        <td class="px-5 py-3">
+          {% if fila.entrega %}
+            <span class="text-xs px-2 py-1 rounded-full {% if fila.entrega.estado == 'Atrasado' %}bg-gold-light text-gold{% else %}bg-navy/10 text-navy{% endif %}">
+              {{ fila.entrega.estado }}
+            </span>
+          {% else %}
+            <span class="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-500">Sin entregar</span>
+          {% endif %}
+        </td>
+        <td class="px-5 py-3 text-gray-600">
+          {% if fila.entrega.archivo %}
+            <a href="{{ fila.entrega.archivo.url }}" target="_blank" class="text-navy hover:underline">Descargar</a>
+          {% else %}—{% endif %}
+        </td>
+        <td class="px-5 py-3">
+          {% if fila.entrega %}
+          <form method="post" class="flex items-center gap-2">
+            {% csrf_token %}
+            <input type="hidden" name="entrega_id" value="{{ fila.entrega.id }}">
+            <input type="number" name="calificacion" step="0.01" min="0" max="100"
+                   value="{{ fila.entrega.calificacion|default_if_none:'' }}"
+                   class="w-20 px-2 py-1 text-sm border border-gray-200 rounded-lg">
+            <input type="text" name="observacion" placeholder="Observación"
+                   value="{{ fila.entrega.observacion }}"
+                   class="w-40 px-2 py-1 text-sm border border-gray-200 rounded-lg">
+            <button type="submit" class="px-3 py-1 text-xs bg-navy text-white rounded-lg hover:bg-navy-light">Guardar</button>
+          </form>
+          {% else %}
+            <span class="text-gray-400">—</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" class="text-center px-5 py-8 text-gray-400">No hay estudiantes matriculados en esta materia</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
