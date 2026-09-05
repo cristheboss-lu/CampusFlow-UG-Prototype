@@ -132,27 +132,64 @@ def logout_estudiante(request):
 
 @login_required(login_url='login')
 def dashboard_estudiante(request):
-    """Panel del estudiante: sus materias matriculadas y tareas pendientes"""
-    matriculas = Matricula.objects.filter(estudiante=request.user).select_related('materia', 'periodo')
-
+    """Panel del estudiante: sus cursos con % completado y sus próximas entregas reales"""
+    matriculas = Matricula.objects.filter(estudiante=request.user).select_related('materia', 'materia__carrera', 'periodo')
     materias_ids = matriculas.values_list('materia_id', flat=True)
-    tareas = Tarea.objects.filter(materia_id__in=materias_ids).select_related('materia').order_by('fecha_entrega')
 
-    entregas_usuario = EntregaTarea.objects.filter(estudiante=request.user)
+    tareas = Tarea.objects.filter(materia_id__in=materias_ids).select_related('materia')
+    entregas_usuario = EntregaTarea.objects.filter(estudiante=request.user).select_related('tarea')
     entregas_dict = {e.tarea_id: e for e in entregas_usuario}
 
-    tareas_con_estado = []
+    tareas_por_materia = {}
+    completadas_por_materia = {}
     for tarea in tareas:
-        entrega = entregas_dict.get(tarea.id)
-        tareas_con_estado.append({
-            'tarea': tarea,
-            'entrega': entrega,
-            'estado': entrega.estado if entrega else 'Pendiente',
+        tareas_por_materia[tarea.materia_id] = tareas_por_materia.get(tarea.materia_id, 0) + 1
+        if tarea.id in entregas_dict:
+            completadas_por_materia[tarea.materia_id] = completadas_por_materia.get(tarea.materia_id, 0) + 1
+
+    cursos = []
+    for matricula in matriculas:
+        total = tareas_por_materia.get(matricula.materia_id, 0)
+        completadas = completadas_por_materia.get(matricula.materia_id, 0)
+        cursos.append({
+            'matricula': matricula,
+            'tareas_totales': total,
+            'tareas_completadas': completadas,
+            'porcentaje_completado': round(completadas / total * 100) if total else 0,
         })
 
+    hoy = timezone.now().date()
+    proximas_entregas = [
+        {'tarea': tarea, 'atrasada': tarea.fecha_entrega < hoy}
+        for tarea in tareas.order_by('fecha_entrega')
+        if tarea.id not in entregas_dict
+    ]
+
+    # Racha de entregas a tiempo: cuenta hacia atrás desde la más reciente
+    # mientras cada entrega haya llegado en o antes de su fecha_entrega.
+    racha_a_tiempo = 0
+    for entrega in entregas_usuario.order_by('-fecha_entrega'):
+        if entrega.fecha_entrega.date() <= entrega.tarea.fecha_entrega:
+            racha_a_tiempo += 1
+        else:
+            break
+
+    proximo_examen = ActividadPlanificada.objects.filter(
+        unidad__parcial__planificacion__materia_id__in=materias_ids,
+        categoria='examen',
+        fecha_entrega__gte=hoy,
+    ).select_related('unidad__parcial__planificacion__materia').order_by('fecha_entrega').first()
+
+    porcentaje_global = round(sum(c['porcentaje_completado'] for c in cursos) / len(cursos)) if cursos else 0
+
     return render(request, 'plataforma/dashboard_estudiante.html', {
-        'matriculas': matriculas,
-        'tareas_con_estado': tareas_con_estado,
+        'cursos': cursos,
+        'proximas_entregas': proximas_entregas,
+        'total_cursos': len(cursos),
+        'total_pendientes': len(proximas_entregas),
+        'porcentaje_global': porcentaje_global,
+        'racha_a_tiempo': racha_a_tiempo,
+        'proximo_examen': proximo_examen,
     })
 
 

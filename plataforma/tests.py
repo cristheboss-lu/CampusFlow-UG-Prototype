@@ -3,6 +3,7 @@ from datetime import date, timedelta
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from .models import (
     ActividadPlanificada, Calificacion, Carrera, EntregaTarea, Materia,
@@ -340,3 +341,106 @@ class DocenteActividadEditarTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.actividad.refresh_from_db()
         self.assertEqual(self.actividad.nombre, 'Semana 1 - Actividad')
+
+
+class DashboardEstudianteTests(TestCase):
+    """Regresión para el panel del estudiante: % completado, próximas entregas, racha y próximo examen."""
+
+    def setUp(self):
+        self.hoy = timezone.now().date()
+        self.carrera = Carrera.objects.create(nombre='Prueba', codigo='PRB')
+        self.periodo = Periodo.objects.create(
+            nombre='2026-2', fecha_inicio=self.hoy - timedelta(days=30),
+            fecha_fin=self.hoy + timedelta(days=120), activo=True,
+        )
+        self.user = User.objects.create_user(
+            'te_est', 'te_est@x.com', 'x', first_name='Tere', last_name='Estrada'
+        )
+        PerfilUsuario.objects.create(user=self.user, rol='estudiante')
+        PerfilEstudiante.objects.create(user=self.user, carrera=self.carrera, cedula='7770001', numero_matricula='M-701')
+
+        docente_user = User.objects.create_user('te_doc', 'te_doc@x.com', 'x')
+        PerfilUsuario.objects.create(user=docente_user, rol='docente')
+        docente = PerfilDocente.objects.create(user=docente_user, carrera=self.carrera, cedula='7770002')
+
+        self.materia = Materia.objects.create(nombre='Fisica', codigo='FIS-1', carrera=self.carrera, docente=docente)
+        Matricula.objects.create(estudiante=self.user, materia=self.materia, periodo=self.periodo)
+
+        planificacion = Planificacion.objects.create(materia=self.materia, periodo=self.periodo, docente=docente)
+        parcial = Parcial.objects.create(planificacion=planificacion, numero=1, nombre='Parcial 1')
+        unidad = Unidad.objects.create(parcial=parcial, numero=1, tema='T')
+        self.examen = ActividadPlanificada.objects.create(
+            unidad=unidad, semana=5, nombre='Examen 1', categoria='examen',
+            fecha_entrega=self.hoy + timedelta(days=10),
+        )
+
+        # Ya entregada, a tiempo (completada): due hoy-5, entregada hoy-6.
+        self.tarea_completada = Tarea.objects.create(
+            materia=self.materia, titulo='T1 Completada', descripcion='',
+            fecha_entrega=self.hoy - timedelta(days=5),
+        )
+        entrega = EntregaTarea.objects.create(
+            tarea=self.tarea_completada, estudiante=self.user, estado='Entregado'
+        )
+        # auto_now_add fija fecha_entrega al crear; la reescribimos para simular
+        # que se entregó antes del vencimiento.
+        EntregaTarea.objects.filter(id=entrega.id).update(
+            fecha_entrega=timezone.now() - timedelta(days=6)
+        )
+
+        # Pendiente, ya vencida (atrasada).
+        self.tarea_atrasada = Tarea.objects.create(
+            materia=self.materia, titulo='T2 Atrasada', descripcion='',
+            fecha_entrega=self.hoy - timedelta(days=1),
+        )
+
+        # Pendiente, todavía no vence.
+        self.tarea_futura = Tarea.objects.create(
+            materia=self.materia, titulo='T3 Futura', descripcion='',
+            fecha_entrega=self.hoy + timedelta(days=3),
+        )
+
+        self.client.force_login(self.user)
+        self.url = reverse('dashboard_estudiante')
+
+    def test_stats_y_porcentaje_completado(self):
+        response = self.client.get(self.url)
+        html = response.content.decode()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('33%', html)  # 1 de 3 tareas completadas
+        self.assertNotIn('T1 Completada', html)  # ya entregada: no en próximas entregas
+
+    def test_proximas_entregas_marca_atrasada_y_pendiente(self):
+        response = self.client.get(self.url)
+        html = response.content.decode()
+
+        self.assertIn('T2 Atrasada', html)
+        self.assertIn('T3 Futura', html)
+        idx_atrasada = html.index('T2 Atrasada')
+        idx_futura = html.index('T3 Futura')
+        self.assertIn('Atrasada', html[idx_atrasada:idx_atrasada + 400])
+        self.assertIn('Pendiente', html[idx_futura:idx_futura + 400])
+
+    def test_racha_a_tiempo(self):
+        response = self.client.get(self.url)
+        html = response.content.decode()
+
+        self.assertIn('1 entrega seguida a tiempo', html)
+
+    def test_proximo_examen_destacado(self):
+        response = self.client.get(self.url)
+        html = response.content.decode()
+
+        self.assertIn('Examen 1', html)
+        self.assertIn('FIS-1', html)
+
+    def test_sin_matriculas_muestra_estado_vacio(self):
+        Matricula.objects.filter(estudiante=self.user).delete()
+
+        response = self.client.get(self.url)
+        html = response.content.decode()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Todavía no tienes cursos matriculados')
+        self.assertIn('0%', html)

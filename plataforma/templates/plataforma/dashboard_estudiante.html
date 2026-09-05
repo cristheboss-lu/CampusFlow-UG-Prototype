@@ -9,44 +9,76 @@
     <p class="text-gray-500 mb-8">Bienvenido/a de vuelta, {{ request.user.first_name }}</p>
 
     <!-- Estadísticas -->
-    <div class="grid gap-5 sm:grid-cols-2 mb-10">
+    <div class="grid gap-5 sm:grid-cols-3 mb-8">
         <div class="bg-white rounded-card shadow-sm p-6">
-            <div class="text-3xl font-bold text-navy">{{ matriculas|length }}</div>
+            <div class="text-3xl font-bold text-navy">{{ total_cursos }}</div>
             <div class="text-sm text-gray-500 mt-1">Cursos matriculados</div>
         </div>
         <div class="bg-white rounded-card shadow-sm p-6">
-            <div class="text-3xl font-bold text-navy">{{ tareas_con_estado|length }}</div>
-            <div class="text-sm text-gray-500 mt-1">Tareas totales</div>
+            <div class="text-3xl font-bold text-navy">{{ total_pendientes }}</div>
+            <div class="text-sm text-gray-500 mt-1">Tareas pendientes</div>
+        </div>
+        <div class="bg-white rounded-card shadow-sm p-6">
+            <div class="text-3xl font-bold text-navy">{{ porcentaje_global }}%</div>
+            <div class="text-sm text-gray-500 mt-1">Completado global</div>
         </div>
     </div>
+
+    <!-- Destacados: racha y próximo examen -->
+    {% if racha_a_tiempo or proximo_examen %}
+    <div class="grid gap-5 sm:grid-cols-2 mb-10">
+        {% if racha_a_tiempo %}
+        <div class="bg-white rounded-card shadow-sm p-5 flex items-center gap-4">
+            <div class="w-11 h-11 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
+                <i class="ti ti-flame text-xl text-amber-500" aria-hidden="true"></i>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-gray-800">{{ racha_a_tiempo }} entrega{{ racha_a_tiempo|pluralize:"s" }} seguida{{ racha_a_tiempo|pluralize:"s" }} a tiempo</p>
+                <p class="text-xs text-gray-500">Sigue así para mantener tu racha</p>
+            </div>
+        </div>
+        {% endif %}
+        {% if proximo_examen %}
+        <div class="bg-white rounded-card shadow-sm p-5 flex items-center gap-4">
+            <div class="w-11 h-11 rounded-full bg-red-50 flex items-center justify-center shrink-0">
+                <i class="ti ti-clipboard-text text-xl text-red-500" aria-hidden="true"></i>
+            </div>
+            <div class="min-w-0">
+                <p class="text-sm font-semibold text-gray-800 truncate">Próximo examen: {{ proximo_examen.nombre }}</p>
+                <p class="text-xs text-gray-500">{{ proximo_examen.unidad.parcial.planificacion.materia.codigo }} · {{ proximo_examen.fecha_entrega|date:"d/m/Y" }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
 
     <!-- Mis cursos -->
     <div class="flex items-center justify-between mb-4">
         <h2 class="text-lg font-semibold text-navy">Mis cursos</h2>
-        <span class="text-xs text-gray-400">{{ matriculas|length }} curso(s)</span>
+        <span class="text-xs text-gray-400">{{ total_cursos }} curso(s)</span>
     </div>
 
-    {% if matriculas %}
+    {% if cursos %}
     <div class="grid gap-6 sm:grid-cols-2 mb-10">
-        {% for m in matriculas %}
-        <a href="{% url 'detalle_curso' m.id %}"
+        {% for item in cursos %}
+        <a href="{% url 'detalle_curso' item.matricula.id %}"
            class="group relative overflow-hidden rounded-card shadow-sm hover:shadow-2xl transition-all hover:-translate-y-1.5 text-white p-7 min-h-[190px] flex flex-col justify-between
            {% cycle 'bg-gradient-to-br from-sky-600 to-navy' 'bg-gradient-to-br from-emerald-600 to-teal-800' 'bg-gradient-to-br from-rose-500 to-pink-700' 'bg-gradient-to-br from-amber-500 to-orange-700' 'bg-gradient-to-br from-violet-600 to-indigo-800' as curso_color %}">
 
             <i class="ti ti-book-2 text-8xl text-white/10 absolute -right-3 -bottom-3 group-hover:scale-110 transition-transform" aria-hidden="true"></i>
 
             <div class="relative z-10">
-                <div class="text-xs font-semibold text-white/70 uppercase tracking-wide mb-1.5">{{ m.materia.codigo }}</div>
-                <h3 class="text-lg font-bold mb-1.5 leading-snug">{{ m.materia.nombre }}</h3>
-                <p class="text-xs text-white/70">Período {{ m.periodo.nombre }} · {{ m.estado }}</p>
+                <div class="text-xs font-semibold text-white/70 uppercase tracking-wide mb-1.5">{{ item.matricula.materia.codigo }}</div>
+                <h3 class="text-lg font-bold mb-1.5 leading-snug">{{ item.matricula.materia.nombre }}</h3>
+                <p class="text-xs text-white/70">{{ item.matricula.materia.carrera.nombre }} · Período {{ item.matricula.periodo.nombre }}</p>
             </div>
 
             <div class="relative z-10">
                 <div class="w-full bg-white/25 rounded-full h-2 mb-1.5">
-                    <div class="bg-white h-2 rounded-full" style="width: {{ m.asistencia }}%;"></div>
+                    <div class="bg-white h-2 rounded-full" style="width: {{ item.porcentaje_completado }}%;"></div>
                 </div>
                 <div class="flex items-center justify-between text-xs text-white/80">
-                    <span>Asistencia: {{ m.asistencia }}%</span>
+                    <span>{{ item.tareas_completadas }}/{{ item.tareas_totales }} completadas ({{ item.porcentaje_completado }}%)</span>
                     <span class="inline-flex items-center gap-1 font-semibold group-hover:translate-x-1 transition-transform">Entrar <i class="ti ti-arrow-right" aria-hidden="true"></i></span>
                 </div>
             </div>
@@ -62,12 +94,12 @@
     <!-- Próximas entregas -->
     <div class="flex items-center justify-between mb-4">
         <h2 class="text-lg font-semibold text-navy">Próximas entregas</h2>
-        <span class="text-xs text-gray-400">{{ tareas_con_estado|length }} tarea(s)</span>
+        <span class="text-xs text-gray-400">{{ total_pendientes }} tarea(s)</span>
     </div>
 
-    {% if tareas_con_estado %}
+    {% if proximas_entregas %}
     <div class="bg-white rounded-card shadow-sm divide-y divide-gray-100">
-        {% for item in tareas_con_estado %}
+        {% for item in proximas_entregas %}
         <a href="{% url 'entregar_tarea' item.tarea.id %}" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors">
             <div class="w-12 text-center shrink-0">
                 <div class="text-lg font-bold text-navy leading-none">{{ item.tarea.fecha_entrega|date:"d" }}</div>
@@ -77,16 +109,10 @@
                 <div class="text-sm font-semibold text-gray-800 truncate">{{ item.tarea.titulo }}</div>
                 <div class="text-xs text-gray-500 mt-0.5">{{ item.tarea.materia.codigo }} — {{ item.tarea.materia.nombre }}</div>
             </div>
-            {% if item.estado == "Pendiente" %}
-            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-amber-50 text-amber-700 whitespace-nowrap">{{ item.estado }}</span>
-            {% elif item.estado == "Entregado" %}
-            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-green-50 text-green-700 whitespace-nowrap">{{ item.estado }}</span>
-            {% elif item.estado == "Calificado" %}
-            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-blue-50 text-navy whitespace-nowrap">{{ item.estado }}</span>
-            {% elif item.estado == "Atrasado" %}
-            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-red-50 text-red-700 whitespace-nowrap">{{ item.estado }}</span>
+            {% if item.atrasada %}
+            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-red-50 text-red-700 whitespace-nowrap">Atrasada</span>
             {% else %}
-            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-gray-100 text-gray-600 whitespace-nowrap">{{ item.estado }}</span>
+            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-amber-50 text-amber-700 whitespace-nowrap">Pendiente</span>
             {% endif %}
             <i class="ti ti-chevron-right text-gray-300" aria-hidden="true"></i>
         </a>
