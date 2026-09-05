@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from .models import (
-    ActividadPlanificada, Calificacion, Carrera, EntregaTarea, Materia,
+    ActividadPlanificada, Calificacion, Carrera, Certificado, EntregaTarea, Materia,
     Matricula, PerfilDocente, PerfilEstudiante, PerfilUsuario, Periodo,
     Planificacion, Parcial, Tarea, Unidad,
 )
@@ -444,3 +444,154 @@ class DashboardEstudianteTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Todavía no tienes cursos matriculados')
         self.assertIn('0%', html)
+
+
+class PortalEstudiantilTests(TestCase):
+    """Regresión para el portal administrativo del estudiante: Kardex, datos, matrícula y certificados."""
+
+    def setUp(self):
+        self.carrera = Carrera.objects.create(nombre='Prueba', codigo='PRB')
+        self.periodo_activo = Periodo.objects.create(
+            nombre='2026-2', fecha_inicio=date(2026, 9, 1), fecha_fin=date(2027, 1, 31), activo=True
+        )
+        self.periodo_pasado = Periodo.objects.create(
+            nombre='2026-1', fecha_inicio=date(2026, 1, 1), fecha_fin=date(2026, 6, 30), activo=False
+        )
+        self.user = User.objects.create_user(
+            'pe_est', 'pe_est@x.com', 'x', first_name='Paola', last_name='Espinoza'
+        )
+        PerfilUsuario.objects.create(user=self.user, rol='estudiante')
+        self.perfil = PerfilEstudiante.objects.create(
+            user=self.user, carrera=self.carrera, cedula='5550001', numero_matricula='M-501'
+        )
+
+        docente_user = User.objects.create_user('pe_doc', 'pe_doc@x.com', 'x')
+        PerfilUsuario.objects.create(user=docente_user, rol='docente')
+        docente = PerfilDocente.objects.create(user=docente_user, carrera=self.carrera, cedula='5550002')
+
+        self.materia_actual = Materia.objects.create(
+            nombre='Quimica', codigo='QUI-1', carrera=self.carrera, docente=docente, creditos=5
+        )
+        self.materia_pasada = Materia.objects.create(
+            nombre='Fisica', codigo='FIS-1', carrera=self.carrera, docente=docente, creditos=3
+        )
+
+        self.matricula_actual = Matricula.objects.create(
+            estudiante=self.user, materia=self.materia_actual, periodo=self.periodo_activo, estado='Cursando'
+        )
+        self.matricula_pasada = Matricula.objects.create(
+            estudiante=self.user, materia=self.materia_pasada, periodo=self.periodo_pasado,
+            estado='Aprobado', nota_final=88,
+        )
+
+        self.client.force_login(self.user)
+        self.url = reverse('portal_estudiantil')
+
+    def test_kardex_incluye_todas_las_materias_sin_filtrar_por_periodo(self):
+        response = self.client.get(self.url)
+        html = response.content.decode()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('QUI-1', html)
+        self.assertIn('FIS-1', html)  # del período pasado: el Kardex es historial completo
+
+    def test_promedio_y_creditos_usan_solo_notas_no_nulas(self):
+        response = self.client.get(self.url)
+        html = response.content.decode()
+
+        # Solo la matricula pasada tiene nota_final (88); la actual es None.
+        # floatformat usa coma decimal por LANGUAGE_CODE='es-es'.
+        self.assertIn('88,0', html)
+        # 5 + 3 = 8 créditos cursados en total.
+        self.assertIn('8', html)
+
+    def test_datos_personales_de_solo_lectura(self):
+        response = self.client.get(self.url)
+        self.assertContains(response, '5550001')  # cedula
+        self.assertContains(response, 'M-501')    # numero_matricula
+        self.assertContains(response, 'Prueba')   # carrera
+
+    def test_estado_matricula_solo_periodo_activo(self):
+        response = self.client.get(self.url)
+        html = response.content.decode()
+
+        self.assertIn('QUI-1', html)
+        # FIS-1 sigue apareciendo en el Kardex, pero no debe listarse dos veces
+        # en la sección de "Estado de matrícula" del período activo.
+        idx_estado_matricula = html.index('Estado de matrícula')
+        self.assertNotIn('FIS-1', html[idx_estado_matricula:])
+
+    def test_solicitar_certificado_crea_pendiente_sin_fecha(self):
+        response = self.client.post(self.url, {'tipo': 'notas'}, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        certificado = Certificado.objects.get(estudiante=self.user)
+        self.assertEqual(certificado.tipo, 'notas')
+        self.assertEqual(certificado.estado, 'Pendiente')
+        self.assertIsNone(certificado.fecha_emision)
+        self.assertEqual(certificado.carrera, self.perfil.carrera)
+
+    def test_tipo_invalido_no_crea_certificado(self):
+        response = self.client.post(self.url, {'tipo': 'algo_raro'}, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Certificado.objects.filter(estudiante=self.user).exists())
+
+    def test_sin_perfil_estudiante_redirige(self):
+        user_sin_perfil = User.objects.create_user('sin_perfil', 'sp@x.com', 'x')
+        PerfilUsuario.objects.create(user=user_sin_perfil, rol='estudiante')
+        self.client.force_login(user_sin_perfil)
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 302)
+
+
+class SecretariaCertificadosProcesarTests(TestCase):
+    """Regresión para aprobar/rechazar solicitudes de certificado pendientes."""
+
+    def setUp(self):
+        self.carrera = Carrera.objects.create(nombre='Prueba', codigo='PRB')
+        self.admin_user = User.objects.create_user('sc_admin', 'sc_admin@x.com', 'x')
+        PerfilUsuario.objects.create(user=self.admin_user, rol='admin')
+
+        self.estudiante = User.objects.create_user('sc_est', 'sc_est@x.com', 'x', first_name='Luis', last_name='Vera')
+        PerfilUsuario.objects.create(user=self.estudiante, rol='estudiante')
+        PerfilEstudiante.objects.create(user=self.estudiante, carrera=self.carrera, cedula='6660001', numero_matricula='M-601')
+
+        self.certificado = Certificado.objects.create(
+            estudiante=self.estudiante, carrera=self.carrera, tipo='matricula',
+            estado='Pendiente', codigo_verificacion='TEST-0001',
+        )
+        self.client.force_login(self.admin_user)
+        self.url = reverse('secretaria_certificados_procesar', args=[self.certificado.id])
+
+    def test_aprobar_emite_y_fija_fecha(self):
+        response = self.client.post(self.url, {'accion': 'aprobar'}, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.certificado.refresh_from_db()
+        self.assertEqual(self.certificado.estado, 'Emitido')
+        self.assertIsNotNone(self.certificado.fecha_emision)
+
+    def test_rechazar_no_fija_fecha(self):
+        response = self.client.post(self.url, {'accion': 'rechazar'}, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.certificado.refresh_from_db()
+        self.assertEqual(self.certificado.estado, 'Rechazado')
+        self.assertIsNone(self.certificado.fecha_emision)
+
+    def test_filtro_por_estado_pendiente(self):
+        Certificado.objects.create(
+            estudiante=self.estudiante, carrera=self.carrera, tipo='notas',
+            estado='Emitido', fecha_emision=date(2026, 9, 1), codigo_verificacion='TEST-0002',
+        )
+
+        response = self.client.get(reverse('secretaria_certificados'), {'estado': 'Pendiente'})
+        html = response.content.decode()
+
+        # El código de trámite solo aparece en filas reales de la tabla, nunca
+        # en el modal estático de "Generar certificado" (que sí lista los 3
+        # tipos siempre) — es un chequeo inequívoco de qué filas se muestran.
+        self.assertIn('TEST-0001', html)
+        self.assertNotIn('TEST-0002', html)

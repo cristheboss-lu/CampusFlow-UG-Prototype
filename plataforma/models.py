@@ -216,16 +216,28 @@ class EntregaTarea(models.Model):
 
 
 class Certificado(models.Model):
+    TIPOS = [
+        ('matricula', 'Certificado de Matrícula'),
+        ('notas', 'Certificado de Notas'),
+        ('asistencia', 'Certificado de Asistencia'),
+    ]
+    ESTADOS = [
+        ('Pendiente', 'Pendiente'),
+        ('Emitido', 'Emitido'),
+        ('Rechazado', 'Rechazado'),
+    ]
+
     estudiante = models.ForeignKey(User, on_delete=models.CASCADE, related_name='certificados')
     carrera = models.ForeignKey(Carrera, on_delete=models.CASCADE)
-    tipo = models.CharField(max_length=50)  # "Término", "Técnico", etc
-    fecha_emision = models.DateField(auto_now_add=True)
+    tipo = models.CharField(max_length=50, choices=TIPOS)
+    estado = models.CharField(max_length=20, choices=ESTADOS, default='Emitido')
+    fecha_emision = models.DateField(null=True, blank=True)
     codigo_verificacion = models.CharField(max_length=20, unique=True)
     qr_code = cloudinary.models.CloudinaryField('qr_codes', null=True, blank=True)
-    
+
     def __str__(self):
         return f"Certificado {self.tipo} - {self.estudiante.get_full_name()}"
-    
+
     class Meta:
         verbose_name_plural = "Certificados"
 
