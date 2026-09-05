@@ -246,7 +246,7 @@ def secretaria_usuarios(request):
     """Gestión de usuarios (docentes y estudiantes)"""
     rol_filtro = request.GET.get('rol', '')
     
-    perfiles = PerfilUsuario.objects.select_related('user', 'carrera')
+    perfiles = PerfilUsuario.objects.select_related('user')
     if rol_filtro:
         perfiles = perfiles.filter(rol=rol_filtro)
     
@@ -259,8 +259,9 @@ def secretaria_usuarios(request):
         rol = request.POST.get('rol')
         carrera_id = request.POST.get('carrera_id')
 
-        # Validación previa
-        if PerfilUsuario.objects.filter(cedula=cedula).exists():
+        # Validación previa (la cédula vive en PerfilEstudiante/PerfilDocente)
+        if (PerfilEstudiante.objects.filter(cedula=cedula).exists()
+                or PerfilDocente.objects.filter(cedula=cedula).exists()):
             messages.error(request, f"❌ Ya existe un usuario con cédula {cedula}")
             return redirect('secretaria_usuarios')
 
@@ -282,9 +283,7 @@ def secretaria_usuarios(request):
                 carrera = Carrera.objects.get(id=carrera_id) if carrera_id else None
                 PerfilUsuario.objects.create(
                     user=user,
-                    cedula=cedula,
-                    rol=rol,
-                    carrera=carrera
+                    rol=rol
                 )
 
                 # Crear perfil específico según rol
@@ -309,8 +308,24 @@ def secretaria_usuarios(request):
 
         return redirect('secretaria_usuarios')
 
+    # cedula/carrera/estado viven en PerfilEstudiante o PerfilDocente según el rol
+    user_ids = [p.user_id for p in perfiles]
+    estudiantes_map = {
+        e.user_id: e
+        for e in PerfilEstudiante.objects.select_related('carrera').filter(user_id__in=user_ids)
+    }
+    docentes_map = {
+        d.user_id: d
+        for d in PerfilDocente.objects.select_related('carrera').filter(user_id__in=user_ids)
+    }
+
+    usuarios = []
+    for perfil in perfiles:
+        detalle = estudiantes_map.get(perfil.user_id) or docentes_map.get(perfil.user_id)
+        usuarios.append({'perfil': perfil, 'detalle': detalle})
+
     return render(request, 'plataforma/secretaria_usuarios.html', {
-        'usuarios': perfiles,
+        'usuarios': usuarios,
         'carreras': carreras,
         'rol_filtro': rol_filtro,
     })
@@ -332,7 +347,10 @@ def secretaria_carga_masiva(request):
         password_hash = make_password('Temporal123!')
         carreras_dict = {c.id: c for c in Carrera.objects.all()}
         usernames_existentes = set(User.objects.values_list('username', flat=True))
-        cedulas_existentes = set(PerfilUsuario.objects.values_list('cedula', flat=True))
+        cedulas_existentes = (
+            set(PerfilEstudiante.objects.values_list('cedula', flat=True))
+            | set(PerfilDocente.objects.values_list('cedula', flat=True))
+        )
 
         usuarios_a_crear = []
         perfiles_a_crear = []
@@ -390,9 +408,7 @@ def secretaria_carga_masiva(request):
                 if user_obj:
                     perfiles_a_crear.append(PerfilUsuario(
                         user=user_obj,
-                        cedula=cedula,
-                        rol=rol,
-                        carrera=carrera
+                        rol=rol
                     ))
 
                     if rol == 'estudiante':
@@ -1082,6 +1098,7 @@ def _importar_estudiantes_desde_excel(ws):
         }
 
         perfiles_a_crear = []
+        roles_a_crear = []
         for username, cedula, numero_matricula, carrera in filas_validas:
             usuario_obj = usuarios_creados.get(username)
             if usuario_obj:
@@ -1089,8 +1106,10 @@ def _importar_estudiantes_desde_excel(ws):
                     user=usuario_obj, carrera=carrera,
                     cedula=cedula, numero_matricula=numero_matricula
                 ))
+                roles_a_crear.append(PerfilUsuario(user=usuario_obj, rol='estudiante'))
 
         PerfilEstudiante.objects.bulk_create(perfiles_a_crear)
+        PerfilUsuario.objects.bulk_create(roles_a_crear)
 
     return len(perfiles_a_crear), errores
 
@@ -1186,6 +1205,7 @@ def _importar_docentes_desde_excel(ws):
         }
 
         perfiles_a_crear = []
+        roles_a_crear = []
         for username, cedula, titulo, carrera in filas_validas:
             usuario_obj = usuarios_creados.get(username)
             if usuario_obj:
@@ -1193,8 +1213,10 @@ def _importar_docentes_desde_excel(ws):
                     user=usuario_obj, carrera=carrera,
                     cedula=cedula, titulo_academico=titulo
                 ))
+                roles_a_crear.append(PerfilUsuario(user=usuario_obj, rol='docente'))
 
         PerfilDocente.objects.bulk_create(perfiles_a_crear)
+        PerfilUsuario.objects.bulk_create(roles_a_crear)
 
     return len(perfiles_a_crear), errores
 
