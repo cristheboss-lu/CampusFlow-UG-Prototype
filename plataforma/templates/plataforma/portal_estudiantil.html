@@ -2,7 +2,20 @@
 
 {% block title %}Portal estudiantil | Universidad de Guayaquil{% endblock %}
 
-{% block sidebar_links %}{% include 'plataforma/_sidebar_estudiante.html' %}{% endblock %}
+{% block sidebar_links %}
+<a href="#kardex" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors">
+  <i class="ti ti-history text-lg" aria-hidden="true"></i> Kardex
+</a>
+<a href="#datos-personales" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors">
+  <i class="ti ti-id-badge text-lg" aria-hidden="true"></i> Datos personales
+</a>
+<a href="#estado-matricula" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors">
+  <i class="ti ti-clipboard-list text-lg" aria-hidden="true"></i> Estado de matrícula
+</a>
+<a href="#certificados" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors">
+  <i class="ti ti-certificate text-lg" aria-hidden="true"></i> Certificados
+</a>
+{% endblock %}
 
 {% block content %}
 <div class="max-w-5xl mx-auto">
@@ -14,7 +27,7 @@
     <p class="text-gray-500 mb-8">Tu historial académico, datos y trámites administrativos.</p>
 
     <!-- ============ KARDEX ============ -->
-    <div class="bg-gradient-to-br from-navy to-navy-dark rounded-card shadow-sm p-6 mb-4 flex flex-col sm:flex-row items-center gap-6 text-white">
+    <div id="kardex" class="scroll-mt-6 bg-gradient-to-br from-navy to-navy-dark rounded-card shadow-sm p-6 mb-4 flex flex-col sm:flex-row items-center gap-6 text-white">
         <div class="relative w-28 h-28 shrink-0">
             <div class="absolute inset-0 rounded-full" style="background: conic-gradient(#F5A623 {{ promedio_general|default:0 }}%, rgba(255,255,255,0.2) 0);"></div>
             <div class="absolute inset-2 bg-navy rounded-full flex flex-col items-center justify-center">
@@ -78,7 +91,7 @@
     </div>
 
     <!-- ============ DATOS PERSONALES ============ -->
-    <div class="bg-white rounded-card shadow-sm overflow-hidden mb-10">
+    <div id="datos-personales" class="scroll-mt-6 bg-white rounded-card shadow-sm overflow-hidden mb-10">
         <div class="bg-gradient-to-r from-navy/5 to-gold/10 px-6 py-4 flex items-center gap-3 border-b border-gray-100">
             <i class="ti ti-id-badge text-2xl text-navy" aria-hidden="true"></i>
             <h2 class="text-lg font-semibold text-navy">Datos personales</h2>
@@ -112,7 +125,7 @@
     </div>
 
     <!-- ============ ESTADO DE MATRÍCULA ============ -->
-    <div class="bg-white rounded-card shadow-sm overflow-hidden mb-10">
+    <div id="estado-matricula" class="scroll-mt-6 bg-white rounded-card shadow-sm overflow-hidden mb-10">
         <div class="bg-gradient-to-r from-navy/5 to-gold/10 px-6 py-4 flex items-center justify-between border-b border-gray-100">
             <div class="flex items-center gap-3">
                 <i class="ti ti-clipboard-list text-2xl text-navy" aria-hidden="true"></i>
@@ -161,7 +174,7 @@
     </div>
 
     <!-- ============ CERTIFICADOS ============ -->
-    <div class="grid gap-6 lg:grid-cols-2 mb-6">
+    <div id="certificados" class="scroll-mt-6 grid gap-6 lg:grid-cols-2 mb-6">
         <div class="bg-white rounded-card shadow-sm overflow-hidden">
             <div class="bg-gradient-to-r from-navy/5 to-gold/10 px-6 py-4 flex items-center gap-3 border-b border-gray-100">
                 <i class="ti ti-certificate text-2xl text-navy" aria-hidden="true"></i>
