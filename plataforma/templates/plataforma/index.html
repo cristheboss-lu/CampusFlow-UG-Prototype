@@ -58,62 +58,81 @@
 </section>
 
 <!-- ============ FACULTADES ============ -->
-<!-- Lista de 12 facultades verificada por el cliente (no exhaustiva: la UG tiene 18 facultades en
-     total). Reverificar nombres y vigencia contra ug.edu.ec antes de publicar en produccion, la oferta
-     pudo cambiar desde 2023. No hay fotos reales por facultad en static/images todavia; tiles solo
-     con icono por ahora. -->
+<!-- 17 facultades con escudo oficial descargado de ug.edu.ec/wp-content/uploads/2022/04/ (cliente
+     confirmo estas URLs). La UG se menciona con ~18 facultades en total; revalidar que esta lista
+     siga completa/vigente contra ug.edu.ec antes de publicar en produccion, los escudos son de 2022. -->
 <section class="reveal bg-gray-50 py-16 md:py-24">
     <div class="max-w-7xl mx-auto px-4 md:px-8">
         <h2 class="font-serif text-2xl md:text-3xl font-bold text-navy text-center mb-10">Nuestras facultades</h2>
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
 
             <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
-                <i class="ti ti-briefcase text-3xl text-navy" aria-hidden="true"></i>
-                <span class="text-sm font-medium text-navy">Ciencias Administrativas</span>
-            </div>
-            <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
-                <i class="ti ti-plant-2 text-3xl text-navy" aria-hidden="true"></i>
-                <span class="text-sm font-medium text-navy">Ciencias Agrarias</span>
-            </div>
-            <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
-                <i class="ti ti-building text-3xl text-navy" aria-hidden="true"></i>
+                <img src="{% static 'images/facultades/arquitectura.svg' %}" alt="Escudo Facultad de Arquitectura y Urbanismo" class="h-16 w-16 object-contain">
                 <span class="text-sm font-medium text-navy">Arquitectura y Urbanismo</span>
             </div>
             <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
-                <i class="ti ti-flask text-3xl text-navy" aria-hidden="true"></i>
-                <span class="text-sm font-medium text-navy">Ingeniería Química</span>
+                <img src="{% static 'images/facultades/administrativas.svg' %}" alt="Escudo Facultad de Ciencias Administrativas" class="h-16 w-16 object-contain">
+                <span class="text-sm font-medium text-navy">Ciencias Administrativas</span>
             </div>
             <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
-                <i class="ti ti-dental text-3xl text-navy" aria-hidden="true"></i>
-                <span class="text-sm font-medium text-navy">Piloto de Odontología</span>
+                <img src="{% static 'images/facultades/agrarias.svg' %}" alt="Escudo Facultad de Ciencias Agrarias" class="h-16 w-16 object-contain">
+                <span class="text-sm font-medium text-navy">Ciencias Agrarias</span>
             </div>
             <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
-                <i class="ti ti-chart-line text-3xl text-navy" aria-hidden="true"></i>
+                <img src="{% static 'images/facultades/economicas.svg' %}" alt="Escudo Facultad de Ciencias Económicas" class="h-16 w-16 object-contain">
                 <span class="text-sm font-medium text-navy">Ciencias Económicas</span>
             </div>
             <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
-                <i class="ti ti-building-factory-2 text-3xl text-navy" aria-hidden="true"></i>
-                <span class="text-sm font-medium text-navy">Ingeniería Industrial</span>
-            </div>
-            <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
-                <i class="ti ti-scale text-3xl text-navy" aria-hidden="true"></i>
-                <span class="text-sm font-medium text-navy">Jurisprudencia, Ciencias Sociales y Políticas</span>
-            </div>
-            <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
-                <i class="ti ti-math-symbols text-3xl text-navy" aria-hidden="true"></i>
+                <img src="{% static 'images/facultades/matematicas.svg' %}" alt="Escudo Facultad de Ciencias Matemáticas y Físicas" class="h-16 w-16 object-contain">
                 <span class="text-sm font-medium text-navy">Ciencias Matemáticas y Físicas</span>
             </div>
             <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
-                <i class="ti ti-stethoscope text-3xl text-navy" aria-hidden="true"></i>
+                <img src="{% static 'images/facultades/medicas.svg' %}" alt="Escudo Facultad de Ciencias Médicas" class="h-16 w-16 object-contain">
                 <span class="text-sm font-medium text-navy">Ciencias Médicas</span>
             </div>
             <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
-                <i class="ti ti-book-2 text-3xl text-navy" aria-hidden="true"></i>
+                <img src="{% static 'images/facultades/psicologicas.svg' %}" alt="Escudo Facultad de Ciencias Psicológicas" class="h-16 w-16 object-contain">
+                <span class="text-sm font-medium text-navy">Ciencias Psicológicas</span>
+            </div>
+            <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
+                <img src="{% static 'images/facultades/quimicas.svg' %}" alt="Escudo Facultad de Ciencias Químicas" class="h-16 w-16 object-contain">
+                <span class="text-sm font-medium text-navy">Ciencias Químicas</span>
+            </div>
+            <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
+                <img src="{% static 'images/facultades/naturales.svg' %}" alt="Escudo Facultad de Ciencias Naturales" class="h-16 w-16 object-contain">
+                <span class="text-sm font-medium text-navy">Ciencias Naturales</span>
+            </div>
+            <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
+                <img src="{% static 'images/facultades/comunicacion.svg' %}" alt="Escudo Facultad de Comunicación Social" class="h-16 w-16 object-contain">
+                <span class="text-sm font-medium text-navy">Comunicación Social</span>
+            </div>
+            <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
+                <img src="{% static 'images/facultades/educacion_fisica.svg' %}" alt="Escudo Facultad de Educación Física, Deportes y Recreación" class="h-16 w-16 object-contain">
+                <span class="text-sm font-medium text-navy">Educación Física, Deportes y Recreación</span>
+            </div>
+            <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
+                <img src="{% static 'images/facultades/filosofia.svg' %}" alt="Escudo Facultad de Filosofía, Letras y Ciencias de la Educación" class="h-16 w-16 object-contain">
                 <span class="text-sm font-medium text-navy">Filosofía, Letras y Ciencias de la Educación</span>
             </div>
             <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
-                <i class="ti ti-run text-3xl text-navy" aria-hidden="true"></i>
-                <span class="text-sm font-medium text-navy">Educación Física</span>
+                <img src="{% static 'images/facultades/industrial.svg' %}" alt="Escudo Facultad de Ingeniería Industrial" class="h-16 w-16 object-contain">
+                <span class="text-sm font-medium text-navy">Ingeniería Industrial</span>
+            </div>
+            <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
+                <img src="{% static 'images/facultades/ing_quimica.svg' %}" alt="Escudo Facultad de Ingeniería Química" class="h-16 w-16 object-contain">
+                <span class="text-sm font-medium text-navy">Ingeniería Química</span>
+            </div>
+            <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
+                <img src="{% static 'images/facultades/jurisprudencia.svg' %}" alt="Escudo Facultad de Jurisprudencia y Ciencias Sociales y Políticas" class="h-16 w-16 object-contain">
+                <span class="text-sm font-medium text-navy">Jurisprudencia y Ciencias Sociales y Políticas</span>
+            </div>
+            <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
+                <img src="{% static 'images/facultades/veterinaria.svg' %}" alt="Escudo Facultad de Medicina Veterinaria y Zootecnia" class="h-16 w-16 object-contain">
+                <span class="text-sm font-medium text-navy">Medicina Veterinaria y Zootecnia</span>
+            </div>
+            <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
+                <img src="{% static 'images/facultades/odontologia.svg' %}" alt="Escudo Facultad Piloto de Odontología" class="h-16 w-16 object-contain">
+                <span class="text-sm font-medium text-navy">Piloto de Odontología</span>
             </div>
 
         </div>
