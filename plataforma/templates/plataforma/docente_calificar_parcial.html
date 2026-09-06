@@ -6,20 +6,22 @@
 
 {% block content %}
 <div class="mb-6">
-  <a href="{% url 'dashboard_docente' %}" class="text-sm text-gray-500 hover:text-navy">← Volver al panel</a>
+  <a href="{% url 'docente_materia_planificacion' materia.id %}" class="text-sm text-gray-500 hover:text-navy transition-colors">← Volver a planificación</a>
   <h1 class="text-2xl font-semibold text-navy mt-2">{{ parcial.nombre|default:tipo_calificacion }} · {{ materia.nombre }}</h1>
   <p class="text-sm text-gray-500">{{ materia.codigo }} · Período {{ periodo.nombre }}</p>
 </div>
 
-<div class="bg-white rounded-xl border border-gray-100 p-5 mb-6">
+{% include 'plataforma/_materia_tabs.html' %}
+
+<div class="bg-gray-50 rounded-lg px-5 py-4 mb-6">
   <p class="text-xs uppercase tracking-wide text-gray-400 mb-2">Fórmula aplicada</p>
-  <p class="text-sm text-gray-700">
+  <p class="text-sm text-gray-700 tabular-nums">
     nota = formativa × {{ parcial.peso_formativa }}%
     + práctica × {{ parcial.peso_practica }}%
     + examen × {{ parcial.peso_examen }}%
   </p>
   {% if total_incompletas %}
-    <p class="mt-3 text-sm text-gold">
+    <p class="mt-3 text-sm text-gold tabular-nums">
       {{ total_incompletas }} estudiante{{ total_incompletas|pluralize:"s" }} sin notas en alguna categoría con peso.
       Esa categoría cuenta como 0.
     </p>
@@ -32,7 +34,7 @@
 </div>
 {% endif %}
 
-<div class="bg-white rounded-xl border border-gray-100 overflow-hidden mb-6">
+<div class="max-w-6xl bg-white rounded-xl border border-gray-100 overflow-hidden mb-6">
   <table class="w-full text-sm">
     <thead class="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
       <tr>
@@ -46,12 +48,12 @@
     </thead>
     <tbody class="divide-y divide-gray-100">
       {% for fila in filas %}
-      <tr class="hover:bg-gray-50">
+      <tr class="hover:bg-gray-50 transition-colors">
         <td class="px-5 py-3 text-gray-800">{{ fila.estudiante.get_full_name|default:fila.estudiante.username }}</td>
-        <td class="px-5 py-3 text-gray-600">{% if fila.prom_formativa is not None %}{{ fila.prom_formativa|floatformat:2 }}{% else %}—{% endif %}</td>
-        <td class="px-5 py-3 text-gray-600">{% if fila.prom_practica is not None %}{{ fila.prom_practica|floatformat:2 }}{% else %}—{% endif %}</td>
-        <td class="px-5 py-3 text-gray-600">{% if fila.nota_examen is not None %}{{ fila.nota_examen|floatformat:2 }}{% else %}—{% endif %}</td>
-        <td class="px-5 py-3 font-semibold text-navy">{{ fila.nota|floatformat:2 }}</td>
+        <td class="px-5 py-3 text-gray-600 tabular-nums">{% if fila.prom_formativa is not None %}{{ fila.prom_formativa|floatformat:2 }}{% else %}—{% endif %}</td>
+        <td class="px-5 py-3 text-gray-600 tabular-nums">{% if fila.prom_practica is not None %}{{ fila.prom_practica|floatformat:2 }}{% else %}—{% endif %}</td>
+        <td class="px-5 py-3 text-gray-600 tabular-nums">{% if fila.nota_examen is not None %}{{ fila.nota_examen|floatformat:2 }}{% else %}—{% endif %}</td>
+        <td class="px-5 py-3 font-semibold text-navy tabular-nums">{{ fila.nota|floatformat:2 }}</td>
         <td class="px-5 py-3">
           {% if fila.completa %}
             <span class="text-xs px-2 py-1 rounded-full bg-navy/10 text-navy">Completa</span>
@@ -71,10 +73,10 @@
 <form method="post" class="flex flex-wrap items-center gap-4">
   {% csrf_token %}
   <label class="flex items-center gap-2 text-sm text-gray-600">
-    <input type="checkbox" name="solo_completas" value="1" checked class="rounded border-gray-300">
+    <input type="checkbox" name="solo_completas" value="1" checked class="rounded border-gray-300 focus:outline-none focus:ring-2 focus:ring-navy-light/30">
     Guardar solo las notas completas
   </label>
-  <button type="submit" class="px-4 py-2 text-sm bg-navy text-white rounded-lg hover:bg-navy-light">
+  <button type="submit" class="px-4 py-2 text-sm bg-navy text-white rounded-lg hover:bg-navy-light transition-colors">
     Guardar {{ tipo_calificacion }}
   </button>
 </form>
