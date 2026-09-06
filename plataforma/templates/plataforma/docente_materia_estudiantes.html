@@ -6,22 +6,24 @@
 
 {% block content %}
 <div class="mb-6">
-  <a href="{% url 'dashboard_docente' %}" class="text-sm text-gray-500 hover:text-navy">← Volver al panel</a>
+  <a href="{% url 'dashboard_docente' %}" class="text-sm text-gray-500 hover:text-navy transition-colors">← Volver al panel</a>
   <h1 class="text-2xl font-semibold text-navy mt-2">Estudiantes · {{ materia.nombre }}</h1>
   <p class="text-sm text-gray-500">{{ materia.codigo }} · {{ materia.carrera.nombre }} · {{ total_tareas }} tarea{{ total_tareas|pluralize:"s" }}</p>
 </div>
 
+{% include 'plataforma/_materia_tabs.html' %}
+
 <form method="get" class="mb-4 flex items-center gap-2">
-  <select name="periodo" class="px-3 py-2 text-sm border border-gray-200 rounded-lg">
+  <select name="periodo" class="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-light/30">
     <option value="">Todos los períodos</option>
     {% for p in periodos %}
       <option value="{{ p.id }}" {% if periodo_filtro == p.id|stringformat:"s" %}selected{% endif %}>{{ p.nombre }}</option>
     {% endfor %}
   </select>
-  <button type="submit" class="px-4 py-2 text-sm bg-navy text-white rounded-lg hover:bg-navy-light">Filtrar</button>
+  <button type="submit" class="px-4 py-2 text-sm bg-navy text-white rounded-lg hover:bg-navy-light transition-colors">Filtrar</button>
 </form>
 
-<div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+<div class="max-w-6xl bg-white rounded-xl border border-gray-100 overflow-hidden">
   <table class="w-full text-sm">
     <thead class="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
       <tr>
@@ -36,15 +38,15 @@
     </thead>
     <tbody class="divide-y divide-gray-100">
       {% for fila in filas %}
-      <tr class="hover:bg-gray-50">
+      <tr class="hover:bg-gray-50 transition-colors">
         <td class="px-5 py-3 text-gray-800">{{ fila.estudiante.get_full_name|default:fila.estudiante.username }}</td>
-        <td class="px-5 py-3 text-gray-600">{{ fila.perfil.numero_matricula|default:"—" }}</td>
+        <td class="px-5 py-3 text-gray-600 tabular-nums">{{ fila.perfil.numero_matricula|default:"—" }}</td>
         <td class="px-5 py-3 text-gray-600">{{ fila.matricula.periodo.nombre }}</td>
-        <td class="px-5 py-3 text-gray-600">{{ fila.entregas }} / {{ total_tareas }}</td>
-        <td class="px-5 py-3 text-gray-600">
+        <td class="px-5 py-3 text-gray-600 tabular-nums">{{ fila.entregas }} / {{ total_tareas }}</td>
+        <td class="px-5 py-3 text-gray-600 tabular-nums">
           {% if fila.promedio_entregas is not None %}{{ fila.promedio_entregas|floatformat:2 }}{% else %}—{% endif %}
         </td>
-        <td class="px-5 py-3 text-gray-600">{{ fila.matricula.nota_final|default_if_none:"—" }}</td>
+        <td class="px-5 py-3 text-gray-600 tabular-nums">{{ fila.matricula.nota_final|default_if_none:"—" }}</td>
         <td class="px-5 py-3">
           <span class="text-xs px-2 py-1 rounded-full {% if fila.matricula.estado == 'Aprobado' %}bg-navy/10 text-navy{% else %}bg-gold-light text-gold{% endif %}">
             {{ fila.matricula.estado }}
