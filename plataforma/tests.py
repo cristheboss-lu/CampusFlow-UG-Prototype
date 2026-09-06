@@ -485,10 +485,17 @@ class PortalEstudiantilTests(TestCase):
         )
 
         self.client.force_login(self.user)
-        self.url = reverse('portal_estudiantil')
+        self.url_kardex = reverse('portal_kardex')
+        self.url_datos = reverse('portal_datos_personales')
+        self.url_matricula = reverse('portal_estado_matricula')
+        self.url_certificados = reverse('portal_certificados')
+
+    def test_legacy_portal_estudiantil_redirige_a_kardex(self):
+        response = self.client.get(reverse('portal_estudiantil'))
+        self.assertRedirects(response, self.url_kardex)
 
     def test_kardex_incluye_todas_las_materias_sin_filtrar_por_periodo(self):
-        response = self.client.get(self.url)
+        response = self.client.get(self.url_kardex)
         html = response.content.decode()
 
         self.assertEqual(response.status_code, 200)
@@ -496,7 +503,7 @@ class PortalEstudiantilTests(TestCase):
         self.assertIn('FIS-1', html)  # del período pasado: el Kardex es historial completo
 
     def test_promedio_y_creditos_usan_solo_notas_no_nulas(self):
-        response = self.client.get(self.url)
+        response = self.client.get(self.url_kardex)
         html = response.content.decode()
 
         # Solo la matricula pasada tiene nota_final (88); la actual es None.
@@ -505,26 +512,42 @@ class PortalEstudiantilTests(TestCase):
         # 5 + 3 = 8 créditos cursados en total.
         self.assertIn('8', html)
 
+    def test_notas_generales_muestra_parciales_y_nota_final(self):
+        Calificacion.objects.create(matricula=self.matricula_pasada, tipo='Parcial 1', valor=80)
+        Calificacion.objects.create(matricula=self.matricula_pasada, tipo='Parcial 2', valor=95)
+
+        response = self.client.get(self.url_kardex)
+        html = response.content.decode()
+
+        self.assertIn('Notas generales', html)
+        self.assertIn('80,0', html)  # Parcial 1 real
+        self.assertIn('95,0', html)  # Parcial 2 real
+        self.assertIn('88,0', html)  # Nota final real (ya seteada en setUp)
+
+    def test_notas_generales_muestra_guion_si_falta_nota(self):
+        # matricula_actual no tiene ninguna Calificacion ni nota_final.
+        response = self.client.get(self.url_kardex)
+        html = response.content.decode()
+
+        idx_notas = html.index('Notas generales')
+        self.assertIn('—', html[idx_notas:])
+
     def test_datos_personales_de_solo_lectura(self):
-        response = self.client.get(self.url)
+        response = self.client.get(self.url_datos)
         self.assertContains(response, '5550001')  # cedula
         self.assertContains(response, 'M-501')    # numero_matricula
         self.assertContains(response, 'Prueba')   # carrera
 
     def test_estado_matricula_solo_periodo_activo(self):
-        response = self.client.get(self.url)
+        response = self.client.get(self.url_matricula)
         html = response.content.decode()
 
         self.assertIn('QUI-1', html)
-        # FIS-1 sigue apareciendo en el Kardex, pero no debe listarse dos veces
-        # en la sección de "Estado de matrícula" del período activo. Se ancla
-        # al id de la sección, no al texto "Estado de matrícula": ese texto
-        # también aparece en el link del sidebar, que sale antes en el HTML.
-        idx_estado_matricula = html.index('id="estado-matricula"')
-        self.assertNotIn('FIS-1', html[idx_estado_matricula:])
+        # FIS-1 es del período pasado: esta página solo muestra el activo.
+        self.assertNotIn('FIS-1', html)
 
     def test_solicitar_certificado_crea_pendiente_sin_fecha(self):
-        response = self.client.post(self.url, {'tipo': 'notas'}, follow=True)
+        response = self.client.post(self.url_certificados, {'tipo': 'notas'}, follow=True)
 
         self.assertEqual(response.status_code, 200)
         certificado = Certificado.objects.get(estudiante=self.user)
@@ -534,18 +557,19 @@ class PortalEstudiantilTests(TestCase):
         self.assertEqual(certificado.carrera, self.perfil.carrera)
 
     def test_tipo_invalido_no_crea_certificado(self):
-        response = self.client.post(self.url, {'tipo': 'algo_raro'}, follow=True)
+        response = self.client.post(self.url_certificados, {'tipo': 'algo_raro'}, follow=True)
 
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Certificado.objects.filter(estudiante=self.user).exists())
 
-    def test_sin_perfil_estudiante_redirige(self):
+    def test_sin_perfil_estudiante_redirige_en_las_4_paginas(self):
         user_sin_perfil = User.objects.create_user('sin_perfil', 'sp@x.com', 'x')
         PerfilUsuario.objects.create(user=user_sin_perfil, rol='estudiante')
         self.client.force_login(user_sin_perfil)
 
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 302)
+        for url in [self.url_kardex, self.url_datos, self.url_matricula, self.url_certificados]:
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 302)
 
 
 class SecretariaCertificadosProcesarTests(TestCase):

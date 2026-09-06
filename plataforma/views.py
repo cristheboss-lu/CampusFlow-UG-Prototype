@@ -55,11 +55,79 @@ def aulas_virtuales(request):
         return redirect('dashboard_estudiante')
     return redirect('login')
 
+def _perfil_estudiante_o_none(user):
+    """Devuelve el PerfilEstudiante del usuario, o None si no lo tiene configurado."""
+    return PerfilEstudiante.objects.select_related('carrera').filter(user=user).first()
+
+
+@login_required(login_url='login')
+def portal_estudiantil(request):
+    """Alias legacy: el portal ahora vive en 4 páginas separadas; el Kardex es la de entrada."""
+    return redirect('portal_kardex')
+
+
 @login_required(login_url='login')
 @rol_requerido('estudiante')
-def portal_estudiantil(request):
-    """Portal administrativo del estudiante: kardex, datos personales, matrícula activa y certificados"""
-    perfil = PerfilEstudiante.objects.select_related('carrera').filter(user=request.user).first()
+def portal_kardex(request):
+    """Portal estudiantil: Kardex / historial académico, con notas por parcial y nota final"""
+    perfil = _perfil_estudiante_o_none(request.user)
+    if not perfil:
+        messages.error(request, "❌ Tu perfil de estudiante no está configurado. Contacta a secretaría.")
+        return redirect('index')
+
+    cursos = _cursos_con_progreso(request.user)
+    matriculas = [c['matricula'] for c in cursos]
+    notas = [m.nota_final for m in matriculas if m.nota_final is not None]
+    promedio_general = round(sum(notas) / len(notas), 1) if notas else None
+    total_creditos = sum(m.materia.creditos for m in matriculas)
+
+    return render(request, 'plataforma/portal_kardex.html', {
+        'perfil': perfil,
+        'cursos': cursos,
+        'promedio_general': promedio_general,
+        'total_creditos': total_creditos,
+    })
+
+
+@login_required(login_url='login')
+@rol_requerido('estudiante')
+def portal_datos_personales(request):
+    """Portal estudiantil: datos personales de solo lectura"""
+    perfil = _perfil_estudiante_o_none(request.user)
+    if not perfil:
+        messages.error(request, "❌ Tu perfil de estudiante no está configurado. Contacta a secretaría.")
+        return redirect('index')
+
+    return render(request, 'plataforma/portal_datos_personales.html', {'perfil': perfil})
+
+
+@login_required(login_url='login')
+@rol_requerido('estudiante')
+def portal_estado_matricula(request):
+    """Portal estudiantil: estado de matrícula del período activo"""
+    perfil = _perfil_estudiante_o_none(request.user)
+    if not perfil:
+        messages.error(request, "❌ Tu perfil de estudiante no está configurado. Contacta a secretaría.")
+        return redirect('index')
+
+    cursos = _cursos_con_progreso(request.user)
+    periodo_activo = Periodo.objects.filter(activo=True).order_by('-fecha_inicio').first()
+    matriculas_activas = [
+        c for c in cursos if periodo_activo and c['matricula'].periodo_id == periodo_activo.id
+    ]
+
+    return render(request, 'plataforma/portal_estado_matricula.html', {
+        'perfil': perfil,
+        'periodo_activo': periodo_activo,
+        'matriculas_activas': matriculas_activas,
+    })
+
+
+@login_required(login_url='login')
+@rol_requerido('estudiante')
+def portal_certificados(request):
+    """Portal estudiantil: solicitar certificado y ver historial de solicitudes propias"""
+    perfil = _perfil_estudiante_o_none(request.user)
     if not perfil:
         messages.error(request, "❌ Tu perfil de estudiante no está configurado. Contacta a secretaría.")
         return redirect('index')
@@ -68,7 +136,7 @@ def portal_estudiantil(request):
         tipo = request.POST.get('tipo')
         if tipo not in dict(Certificado.TIPOS):
             messages.error(request, "❌ Selecciona un tipo de certificado válido")
-            return redirect('portal_estudiantil')
+            return redirect('portal_certificados')
 
         Certificado.objects.create(
             estudiante=request.user,
@@ -78,29 +146,12 @@ def portal_estudiantil(request):
             codigo_verificacion=_generar_numero_tramite(),
         )
         messages.success(request, "✅ Solicitud de certificado enviada. Secretaría la revisará pronto.")
-        return redirect('portal_estudiantil')
-
-    # Kardex: misma fuente de datos que dashboard_estudiante, sin filtrar por período.
-    cursos = _cursos_con_progreso(request.user)
-    matriculas = [c['matricula'] for c in cursos]
-    notas = [m.nota_final for m in matriculas if m.nota_final is not None]
-    promedio_general = round(sum(notas) / len(notas), 1) if notas else None
-    total_creditos = sum(m.materia.creditos for m in matriculas)
-
-    periodo_activo = Periodo.objects.filter(activo=True).order_by('-fecha_inicio').first()
-    matriculas_activas = [
-        c for c in cursos if periodo_activo and c['matricula'].periodo_id == periodo_activo.id
-    ]
+        return redirect('portal_certificados')
 
     certificados = Certificado.objects.filter(estudiante=request.user).order_by('-id')
 
-    return render(request, 'plataforma/portal_estudiantil.html', {
+    return render(request, 'plataforma/portal_certificados.html', {
         'perfil': perfil,
-        'cursos': cursos,
-        'promedio_general': promedio_general,
-        'total_creditos': total_creditos,
-        'periodo_activo': periodo_activo,
-        'matriculas_activas': matriculas_activas,
         'certificados': certificados,
         'tipos_certificado': Certificado.TIPOS,
     })
@@ -192,9 +243,10 @@ def logout_estudiante(request):
 def _cursos_con_progreso(user):
     """
     Todas las Matricula del estudiante (sin filtrar por período) con su
-    % completado (entregas / tareas totales de esa materia). Fuente única
-    para dashboard_estudiante y el Kardex del portal, para que ambos
-    muestren siempre los mismos números.
+    % completado (entregas / tareas totales de esa materia) y sus notas
+    (Parcial 1, Parcial 2, nota final). Fuente única para
+    dashboard_estudiante y el Portal Estudiantil, para que todos muestren
+    siempre los mismos números.
     """
     matriculas = Matricula.objects.filter(estudiante=user).select_related('materia', 'materia__carrera', 'periodo')
     materias_ids = matriculas.values_list('materia_id', flat=True)
@@ -209,15 +261,26 @@ def _cursos_con_progreso(user):
         if tarea.id in entregas_dict:
             completadas_por_materia[tarea.materia_id] = completadas_por_materia.get(tarea.materia_id, 0) + 1
 
+    notas_por_matricula = {}
+    calificaciones = Calificacion.objects.filter(
+        matricula__in=matriculas, tipo__in=['Parcial 1', 'Parcial 2']
+    )
+    for calificacion in calificaciones:
+        notas_por_matricula.setdefault(calificacion.matricula_id, {})[calificacion.tipo] = calificacion.valor
+
     cursos = []
     for matricula in matriculas:
         total = tareas_por_materia.get(matricula.materia_id, 0)
         completadas = completadas_por_materia.get(matricula.materia_id, 0)
+        notas = notas_por_matricula.get(matricula.id, {})
         cursos.append({
             'matricula': matricula,
             'tareas_totales': total,
             'tareas_completadas': completadas,
             'porcentaje_completado': round(completadas / total * 100) if total else 0,
+            'primer_parcial': notas.get('Parcial 1'),
+            'segundo_parcial': notas.get('Parcial 2'),
+            'nota_final': matricula.nota_final,
         })
     return cursos
 

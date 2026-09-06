@@ -22,6 +22,12 @@ urlpatterns = [
     path('curso/<int:matricula_id>/', views.detalle_curso, name='detalle_curso'),
     path('tarea/<int:tarea_id>/entregar/', views.entregar_tarea, name='entregar_tarea'),
 
+    # ===== PORTAL ESTUDIANTIL (4 páginas separadas) =====
+    path('portal-estudiantil/kardex/', views.portal_kardex, name='portal_kardex'),
+    path('portal-estudiantil/datos-personales/', views.portal_datos_personales, name='portal_datos_personales'),
+    path('portal-estudiantil/estado-matricula/', views.portal_estado_matricula, name='portal_estado_matricula'),
+    path('portal-estudiantil/certificados/', views.portal_certificados, name='portal_certificados'),
+
     # ===== PANEL DOCENTE =====
     path('docente/', views.dashboard_docente, name='dashboard_docente'),
     path('docente/materia/<int:materia_id>/tareas/', views.docente_materia_tareas, name='docente_materia_tareas'),

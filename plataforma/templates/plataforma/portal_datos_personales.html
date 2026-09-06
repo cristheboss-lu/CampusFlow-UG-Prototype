@@ -1,0 +1,50 @@
+{% extends "plataforma/base.html" %}
+
+{% block title %}Datos personales | Portal estudiantil{% endblock %}
+
+{% block sidebar_links %}{% include 'plataforma/_sidebar_portal_estudiantil.html' %}{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+
+    <div class="flex items-center gap-3 mb-2">
+        <i class="ti ti-id-badge text-2xl text-navy" aria-hidden="true"></i>
+        <h1 class="text-2xl font-semibold text-navy">Datos personales</h1>
+    </div>
+    <p class="text-gray-500 mb-8">Tu información registrada. De solo lectura.</p>
+
+    <div class="bg-white rounded-card shadow-sm overflow-hidden">
+        <div class="bg-gradient-to-r from-navy/5 to-gold/10 px-6 py-4 flex items-center gap-3 border-b border-gray-100">
+            <i class="ti ti-id-badge text-2xl text-navy" aria-hidden="true"></i>
+            <h2 class="text-lg font-semibold text-navy">Datos personales</h2>
+        </div>
+        <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5 text-sm">
+            <div>
+                <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Nombre completo</p>
+                <p class="text-gray-800 font-medium">{{ request.user.get_full_name }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Cédula</p>
+                <p class="text-gray-800 font-medium">{{ perfil.cedula }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Número de matrícula</p>
+                <p class="text-gray-800 font-medium">{{ perfil.numero_matricula }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Carrera</p>
+                <p class="text-gray-800 font-medium">{{ perfil.carrera.nombre }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Fecha de ingreso</p>
+                <p class="text-gray-800 font-medium">{{ perfil.fecha_ingreso|date:"d/m/Y" }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Correo</p>
+                <p class="text-gray-800 font-medium">{{ request.user.email|default:"—" }}</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
