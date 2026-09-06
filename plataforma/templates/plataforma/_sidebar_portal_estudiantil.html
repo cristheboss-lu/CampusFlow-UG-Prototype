@@ -1,0 +1,18 @@
+{% with url_name=request.resolver_match.url_name %}
+<a href="{% url 'portal_kardex' %}"
+   class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors {% if url_name == 'portal_kardex' %}bg-white/10 font-medium{% endif %}">
+  <i class="ti ti-history text-lg" aria-hidden="true"></i> Kardex
+</a>
+<a href="{% url 'portal_datos_personales' %}"
+   class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors {% if url_name == 'portal_datos_personales' %}bg-white/10 font-medium{% endif %}">
+  <i class="ti ti-id-badge text-lg" aria-hidden="true"></i> Datos personales
+</a>
+<a href="{% url 'portal_estado_matricula' %}"
+   class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors {% if url_name == 'portal_estado_matricula' %}bg-white/10 font-medium{% endif %}">
+  <i class="ti ti-clipboard-list text-lg" aria-hidden="true"></i> Estado de matrícula
+</a>
+<a href="{% url 'portal_certificados' %}"
+   class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors {% if url_name == 'portal_certificados' %}bg-white/10 font-medium{% endif %}">
+  <i class="ti ti-certificate text-lg" aria-hidden="true"></i> Certificados
+</a>
+{% endwith %}

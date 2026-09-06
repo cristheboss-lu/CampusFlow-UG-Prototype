@@ -1,0 +1,113 @@
+{% extends "plataforma/base.html" %}
+
+{% block title %}Kardex | Portal estudiantil{% endblock %}
+
+{% block sidebar_links %}{% include 'plataforma/_sidebar_portal_estudiantil.html' %}{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+
+    <div class="flex items-center gap-3 mb-2">
+        <i class="ti ti-history text-2xl text-navy" aria-hidden="true"></i>
+        <h1 class="text-2xl font-semibold text-navy">Kardex / historial académico</h1>
+    </div>
+    <p class="text-gray-500 mb-8">Tu historial completo de materias cursadas.</p>
+
+    <div class="bg-gradient-to-br from-navy to-navy-dark rounded-card shadow-sm p-6 mb-4 flex flex-col sm:flex-row items-center gap-6 text-white">
+        <div class="relative w-28 h-28 shrink-0">
+            <div class="absolute inset-0 rounded-full" style="background: conic-gradient(#F5A623 {{ promedio_general|default:0 }}%, rgba(255,255,255,0.2) 0);"></div>
+            <div class="absolute inset-2 bg-navy rounded-full flex flex-col items-center justify-center">
+                <span class="text-2xl font-bold">{{ promedio_general|default:"—" }}</span>
+                <span class="text-[10px] text-white/70 uppercase tracking-wide">Promedio</span>
+            </div>
+        </div>
+        <div class="flex-1 grid grid-cols-2 gap-6 text-center sm:text-left">
+            <div>
+                <p class="text-2xl font-bold">{{ cursos|length }}</p>
+                <p class="text-xs text-white/70">Materias cursadas</p>
+            </div>
+            <div>
+                <p class="text-2xl font-bold">{{ total_creditos }}</p>
+                <p class="text-xs text-white/70">Créditos cursados</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-card shadow-sm overflow-hidden mb-10">
+        <div class="bg-gradient-to-r from-navy/5 to-gold/10 px-6 py-4 flex items-center gap-3 border-b border-gray-100">
+            <i class="ti ti-history text-2xl text-navy" aria-hidden="true"></i>
+            <h2 class="text-lg font-semibold text-navy">Historial de materias</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
+                    <tr>
+                        <th class="text-left px-5 py-3 font-medium">Materia</th>
+                        <th class="text-left px-5 py-3 font-medium">Período</th>
+                        <th class="text-left px-5 py-3 font-medium">Créditos</th>
+                        <th class="text-left px-5 py-3 font-medium">Nota final</th>
+                        <th class="text-left px-5 py-3 font-medium">Estado</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for item in cursos %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-5 py-3 text-gray-800">{{ item.matricula.materia.codigo }} — {{ item.matricula.materia.nombre }}</td>
+                        <td class="px-5 py-3 text-gray-600">{{ item.matricula.periodo.nombre }}</td>
+                        <td class="px-5 py-3 text-gray-600">{{ item.matricula.materia.creditos }}</td>
+                        <td class="px-5 py-3 text-gray-600">{{ item.nota_final|default:"—" }}</td>
+                        <td class="px-5 py-3">
+                            {% if item.matricula.estado == 'Aprobado' %}
+                            <span class="text-xs px-2 py-1 rounded-full bg-green-50 text-green-700">Aprobado</span>
+                            {% elif item.matricula.estado == 'Reprobado' %}
+                            <span class="text-xs px-2 py-1 rounded-full bg-red-50 text-red-700">Reprobado</span>
+                            {% elif item.matricula.estado == 'Retirado' %}
+                            <span class="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">Retirado</span>
+                            {% else %}
+                            <span class="text-xs px-2 py-1 rounded-full bg-amber-50 text-amber-700">Cursando</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-center px-5 py-8 text-gray-400">Todavía no tienes materias registradas</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ============ NOTAS GENERALES ============ -->
+    <div class="bg-white rounded-card shadow-sm overflow-hidden mb-6">
+        <div class="bg-gradient-to-r from-navy/5 to-gold/10 px-6 py-4 flex items-center gap-3 border-b border-gray-100">
+            <i class="ti ti-report text-2xl text-navy" aria-hidden="true"></i>
+            <h2 class="text-lg font-semibold text-navy">Notas generales</h2>
+        </div>
+        {% if cursos %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-6">
+            {% for item in cursos %}
+            <div class="border border-gray-100 rounded-lg p-4">
+                <p class="text-sm font-semibold text-gray-800 mb-3">{{ item.matricula.materia.codigo }} — {{ item.matricula.materia.nombre }}</p>
+                <div class="grid grid-cols-3 gap-2 text-center">
+                    <div>
+                        <p class="text-lg font-bold text-navy">{{ item.primer_parcial|default:"—" }}</p>
+                        <p class="text-[10px] text-gray-400 uppercase tracking-wide">Primer parcial</p>
+                    </div>
+                    <div>
+                        <p class="text-lg font-bold text-navy">{{ item.segundo_parcial|default:"—" }}</p>
+                        <p class="text-[10px] text-gray-400 uppercase tracking-wide">Segundo parcial</p>
+                    </div>
+                    <div>
+                        <p class="text-lg font-bold text-gold">{{ item.nota_final|default:"—" }}</p>
+                        <p class="text-[10px] text-gray-400 uppercase tracking-wide">Nota final</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-center px-5 py-8 text-gray-400 text-sm">Todavía no tienes notas registradas</p>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
