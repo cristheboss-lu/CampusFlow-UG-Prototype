@@ -5,112 +5,147 @@
 
 {% block content %}
 
-<!-- ============ HERO / CARRUSEL (ancho completo) ============ -->
-<section class="relative h-[480px] md:h-[600px] flex items-center justify-center overflow-hidden">
+<!-- ============ HERO ASIMETRICO ============ -->
+<section class="reveal max-w-7xl mx-auto px-4 md:px-8 pt-10 md:pt-16 pb-16 md:pb-24 grid grid-cols-1 md:grid-cols-5 gap-10 md:gap-12 items-center">
 
-    <div class="hero-img absolute inset-0 bg-cover bg-center transition-opacity duration-700 z-30" style="background-image:url('{% static 'images/banner.webp' %}'); opacity:1;"></div>
-    <div class="hero-img absolute inset-0 bg-cover bg-center transition-opacity duration-700 z-20" style="background-image:url('{% static 'images/estudiantes.webp' %}'); opacity:0;"></div>
-    <div class="hero-img absolute inset-0 bg-cover bg-center transition-opacity duration-700 z-10" style="background-image:url('{% static 'images/OIP.webp' %}'); opacity:0;"></div>
-
-    <div class="absolute inset-0 bg-navy/55 z-40"></div>
-
-    <div class="relative z-50 text-center text-white px-4 max-w-3xl">
-        <h1 class="text-3xl md:text-5xl font-bold tracking-tight mb-3">Universidad de Guayaquil</h1>
-        <p class="text-base md:text-xl text-white/90 mb-8">Excelencia académica y desarrollo integral</p>
-        <div class="flex flex-wrap items-center justify-center gap-4">
+    <div class="md:col-span-3">
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-navy tracking-tight leading-[1.05] mb-4">Universidad de Guayaquil</h1>
+        <p class="text-lg md:text-xl text-gray-600 leading-relaxed mb-8 max-w-[48ch]">Excelencia académica y desarrollo integral para miles de estudiantes en Guayaquil, Ecuador.</p>
+        <div class="flex flex-wrap items-center gap-4">
             <a href="{% url 'aulas_virtuales' %}"
                class="inline-flex items-center gap-2 bg-gold hover:bg-gold/90 text-navy-dark font-semibold px-6 py-3 rounded-lg transition-colors">
                 <i class="ti ti-door-enter" aria-hidden="true"></i> Ir al aula virtual
             </a>
             <a href="https://www.scopus.com" target="_blank" rel="noopener"
-               class="inline-flex items-center gap-2 border border-white/70 hover:bg-white/10 text-white font-semibold px-6 py-3 rounded-lg transition-colors">
+               class="inline-flex items-center gap-2 border border-navy/20 hover:bg-navy/5 text-navy font-semibold px-6 py-3 rounded-lg transition-colors">
                 <i class="ti ti-books" aria-hidden="true"></i> Explorar biblioteca
             </a>
         </div>
     </div>
 
-    <div class="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-1 z-50">
-        <button type="button" class="hero-dot p-2 -m-0" aria-label="Ir a la imagen 1"><span class="block w-2.5 h-2.5 rounded-full bg-white transition-opacity"></span></button>
-        <button type="button" class="hero-dot p-2 -m-0" aria-label="Ir a la imagen 2"><span class="block w-2.5 h-2.5 rounded-full bg-white/50 transition-opacity"></span></button>
-        <button type="button" class="hero-dot p-2 -m-0" aria-label="Ir a la imagen 3"><span class="block w-2.5 h-2.5 rounded-full bg-white/50 transition-opacity"></span></button>
+    <div class="md:col-span-2">
+        <div class="relative rounded-card overflow-hidden aspect-[4/5] md:aspect-[3/4] shadow-lg">
+            <img src="{% static 'images/Universidad-de-Guayaquil-Ecuador.jpg' %}" alt="Campus de la Universidad de Guayaquil" class="w-full h-full object-cover">
+        </div>
     </div>
 </section>
 
-<!-- ============ DESCRIPCIÓN ============ -->
-<section class="max-w-3xl mx-auto text-center px-4 py-16">
-    <p class="text-gray-600 text-lg leading-relaxed">
-        Somos una institución educativa comprometida con la excelencia académica y el desarrollo
-        integral de nuestros estudiantes. Ofrecemos programas de calidad en diversas áreas del conocimiento.
-    </p>
+<!-- ============ FRANJA DE ACCESO RAPIDO ============ -->
+<section class="reveal max-w-7xl mx-auto px-4 md:px-8 pb-16 md:pb-24">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+
+        <a href="{% url 'aulas_virtuales' %}" class="bg-navy hover:bg-navy-light transition-colors rounded-card p-6 md:p-8 text-white flex flex-col gap-4">
+            <i class="ti ti-chalkboard text-3xl" aria-hidden="true"></i>
+            <span class="text-xl font-bold leading-tight">Aulas virtuales</span>
+        </a>
+
+        <a href="{% url 'portal_estudiantil' %}" class="bg-navy-light hover:bg-navy transition-colors rounded-card p-6 md:p-8 text-white flex flex-col gap-4">
+            <i class="ti ti-user-circle text-3xl" aria-hidden="true"></i>
+            <span class="text-xl font-bold leading-tight">Portal estudiantil</span>
+        </a>
+
+        <a href="https://www.scopus.com" target="_blank" rel="noopener" class="bg-gold-dark hover:bg-gold-dark/90 transition-colors rounded-card p-6 md:p-8 text-white flex flex-col gap-4">
+            <i class="ti ti-books text-3xl" aria-hidden="true"></i>
+            <span class="text-xl font-bold leading-tight">Biblioteca</span>
+        </a>
+
+        <a href="{% url 'admisiones' %}" class="bg-gold hover:bg-gold/90 transition-colors rounded-card p-6 md:p-8 text-navy-dark flex flex-col gap-4">
+            <i class="ti ti-pencil text-3xl" aria-hidden="true"></i>
+            <span class="text-xl font-bold leading-tight">Admisiones</span>
+        </a>
+
+    </div>
 </section>
 
-<!-- ============ SERVICIOS (ancho completo, fondo distinto) ============ -->
-<section class="bg-gray-50 py-16">
+<!-- ============ FACULTADES ============ -->
+<!-- Lista de 12 facultades verificada por el cliente (no exhaustiva: la UG tiene 18 facultades en
+     total). Reverificar nombres y vigencia contra ug.edu.ec antes de publicar en produccion, la oferta
+     pudo cambiar desde 2023. No hay fotos reales por facultad en static/images todavia; tiles solo
+     con icono por ahora. -->
+<section class="reveal bg-gray-50 py-16 md:py-24">
     <div class="max-w-7xl mx-auto px-4 md:px-8">
-        <h2 class="text-2xl md:text-3xl font-semibold text-navy text-center mb-10">Nuestros servicios</h2>
-        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <h2 class="text-2xl md:text-3xl font-semibold text-navy text-center mb-10">Nuestras facultades</h2>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
 
-            <a href="{% url 'aulas_virtuales' %}" class="group bg-white rounded-card overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                <div class="relative h-44 overflow-hidden">
-                    <img src="{% static 'images/estudiantes.webp' %}" alt="Aulas virtuales" class="w-full h-full object-cover">
-                </div>
-                <div class="p-6">
-                    <h3 class="font-semibold text-navy mb-1.5">Aulas virtuales</h3>
-                    <p class="text-sm text-gray-500 mb-3">Plataforma interactiva para clases en línea, recursos y seguimiento académico.</p>
-                    <span class="text-sm font-medium text-navy group-hover:translate-x-1 inline-flex items-center gap-1 transition-transform">Explorar <i class="ti ti-arrow-right text-gold" aria-hidden="true"></i></span>
-                </div>
-            </a>
-
-            <a href="{% url 'portal_estudiantil' %}" class="group bg-white rounded-card overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                <div class="relative h-44 overflow-hidden">
-                    <img src="{% static 'images/OIP.webp' %}" alt="Portal estudiantil" class="w-full h-full object-cover">
-                </div>
-                <div class="p-6">
-                    <h3 class="font-semibold text-navy mb-1.5">Portal estudiantil</h3>
-                    <p class="text-sm text-gray-500 mb-3">Consulta calificaciones, horarios, solicitudes y documentos en un solo lugar.</p>
-                    <span class="text-sm font-medium text-navy group-hover:translate-x-1 inline-flex items-center gap-1 transition-transform">Acceder <i class="ti ti-arrow-right text-gold" aria-hidden="true"></i></span>
-                </div>
-            </a>
-
-            <a href="https://www.scopus.com" target="_blank" rel="noopener" class="group bg-white rounded-card overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                <div class="h-44 bg-gradient-to-br from-navy to-navy-dark flex items-center justify-center">
-                    <i class="ti ti-books text-white/30 text-6xl" aria-hidden="true"></i>
-                </div>
-                <div class="p-6">
-                    <h3 class="font-semibold text-navy mb-1.5">Biblioteca digital</h3>
-                    <p class="text-sm text-gray-500 mb-3">Miles de libros, artículos y recursos académicos digitales disponibles 24/7.</p>
-                    <span class="text-sm font-medium text-navy group-hover:translate-x-1 inline-flex items-center gap-1 transition-transform">Consultar <i class="ti ti-arrow-right text-gold" aria-hidden="true"></i></span>
-                </div>
-            </a>
-
-            <a href="{% url 'admisiones' %}" class="group bg-white rounded-card overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                <div class="h-44 bg-gradient-to-br from-navy-light to-navy flex items-center justify-center">
-                    <i class="ti ti-pencil text-white/30 text-6xl" aria-hidden="true"></i>
-                </div>
-                <div class="p-6">
-                    <h3 class="font-semibold text-navy mb-1.5">Admisiones</h3>
-                    <p class="text-sm text-gray-500 mb-3">Proceso de admisión fácil, requisitos, convocatorias y asesoría estudiantil.</p>
-                    <span class="text-sm font-medium text-navy group-hover:translate-x-1 inline-flex items-center gap-1 transition-transform">Postular <i class="ti ti-arrow-right text-gold" aria-hidden="true"></i></span>
-                </div>
-            </a>
-
-            <a href="{% url 'contacto' %}" class="group bg-white rounded-card overflow-hidden shadow-sm hover:shadow-md transition-shadow sm:col-span-2 lg:col-span-1">
-                <div class="h-44 bg-gradient-to-br from-gold to-gold-dark flex items-center justify-center">
-                    <i class="ti ti-mail text-white/40 text-6xl" aria-hidden="true"></i>
-                </div>
-                <div class="p-6">
-                    <h3 class="font-semibold text-navy mb-1.5">Contacto</h3>
-                    <p class="text-sm text-gray-500 mb-3">Resuelve tus dudas e inquietudes comunicándote directamente con nosotros.</p>
-                    <span class="text-sm font-medium text-navy group-hover:translate-x-1 inline-flex items-center gap-1 transition-transform">Escribir <i class="ti ti-arrow-right text-gold" aria-hidden="true"></i></span>
-                </div>
-            </a>
+            <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
+                <i class="ti ti-briefcase text-3xl text-navy" aria-hidden="true"></i>
+                <span class="text-sm font-medium text-navy">Ciencias Administrativas</span>
+            </div>
+            <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
+                <i class="ti ti-plant-2 text-3xl text-navy" aria-hidden="true"></i>
+                <span class="text-sm font-medium text-navy">Ciencias Agrarias</span>
+            </div>
+            <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
+                <i class="ti ti-building text-3xl text-navy" aria-hidden="true"></i>
+                <span class="text-sm font-medium text-navy">Arquitectura y Urbanismo</span>
+            </div>
+            <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
+                <i class="ti ti-flask text-3xl text-navy" aria-hidden="true"></i>
+                <span class="text-sm font-medium text-navy">Ingeniería Química</span>
+            </div>
+            <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
+                <i class="ti ti-dental text-3xl text-navy" aria-hidden="true"></i>
+                <span class="text-sm font-medium text-navy">Piloto de Odontología</span>
+            </div>
+            <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
+                <i class="ti ti-chart-line text-3xl text-navy" aria-hidden="true"></i>
+                <span class="text-sm font-medium text-navy">Ciencias Económicas</span>
+            </div>
+            <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
+                <i class="ti ti-building-factory-2 text-3xl text-navy" aria-hidden="true"></i>
+                <span class="text-sm font-medium text-navy">Ingeniería Industrial</span>
+            </div>
+            <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
+                <i class="ti ti-scale text-3xl text-navy" aria-hidden="true"></i>
+                <span class="text-sm font-medium text-navy">Jurisprudencia, Ciencias Sociales y Políticas</span>
+            </div>
+            <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
+                <i class="ti ti-math-symbols text-3xl text-navy" aria-hidden="true"></i>
+                <span class="text-sm font-medium text-navy">Ciencias Matemáticas y Físicas</span>
+            </div>
+            <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
+                <i class="ti ti-stethoscope text-3xl text-navy" aria-hidden="true"></i>
+                <span class="text-sm font-medium text-navy">Ciencias Médicas</span>
+            </div>
+            <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
+                <i class="ti ti-book-2 text-3xl text-navy" aria-hidden="true"></i>
+                <span class="text-sm font-medium text-navy">Filosofía, Letras y Ciencias de la Educación</span>
+            </div>
+            <div class="rounded-card bg-white shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center gap-3">
+                <i class="ti ti-run text-3xl text-navy" aria-hidden="true"></i>
+                <span class="text-sm font-medium text-navy">Educación Física</span>
+            </div>
 
         </div>
     </div>
 </section>
 
+<!-- ============ POR QUE LA UG ============ -->
+<section class="reveal max-w-7xl mx-auto px-4 md:px-8 py-16 md:py-24 grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 items-center">
+
+    <div class="order-2 md:order-1">
+        <h2 class="text-2xl md:text-3xl font-semibold text-navy mb-4">¿Por qué la UG?</h2>
+        <p class="text-gray-600 text-lg leading-relaxed">
+            Somos una institución educativa comprometida con la excelencia académica y el desarrollo
+            integral de nuestros estudiantes. Ofrecemos programas de calidad en diversas áreas del conocimiento.
+        </p>
+    </div>
+
+    <div class="order-1 md:order-2 relative">
+        <div class="rounded-card overflow-hidden aspect-[4/3] shadow-lg">
+            <img src="{% static 'images/estudiantes.webp' %}" alt="Estudiantes de la Universidad de Guayaquil" class="w-full h-full object-cover">
+        </div>
+        <!-- Cifra: +71.000 estudiantes (fuente Wikipedia / datos institucionales 2025). Verificar la cifra
+             exacta mas reciente en ug.edu.ec antes de publicar en produccion. -->
+        <div class="absolute bottom-4 left-4 md:-bottom-8 md:-left-8 bg-white rounded-card shadow-xl p-5 md:p-6 max-w-[220px]">
+            <div class="text-3xl font-bold text-gold-dark">+71.000</div>
+            <div class="text-sm text-gray-600 mt-1">Estudiantes</div>
+        </div>
+    </div>
+</section>
+
 <!-- ============ NOTICIAS (ancho completo) ============ -->
-<section class="py-16">
+<section class="reveal py-16 md:py-24">
     <div class="max-w-7xl mx-auto px-4 md:px-8">
         <h2 class="text-2xl md:text-3xl font-semibold text-navy text-center mb-10">Noticias recientes</h2>
         <div class="grid gap-6 md:grid-cols-3">
@@ -137,7 +172,7 @@
 </section>
 
 <!-- ============ ESTADÍSTICAS (fondo navy, ancho completo) ============ -->
-<section class="bg-navy py-16">
+<section class="reveal bg-navy py-16 md:py-24">
     <div class="max-w-7xl mx-auto px-4 md:px-8">
         <h2 class="text-2xl md:text-3xl font-semibold text-white text-center mb-10">Nuestra institución</h2>
         <div class="grid gap-6 grid-cols-2 md:grid-cols-4">
@@ -162,7 +197,7 @@
 </section>
 
 <!-- ============ CTA CONTACTO (ancho completo) ============ -->
-<section class="py-16">
+<section class="reveal py-16 md:py-24">
     <div class="max-w-4xl mx-auto px-4 text-center">
         <h3 class="text-xl md:text-2xl font-semibold text-navy mb-2 flex items-center justify-center gap-2">
             <i class="ti ti-message-circle" aria-hidden="true"></i> ¿Tienes preguntas?
@@ -175,44 +210,4 @@
     </div>
 </section>
 
-{% endblock %}
-
-{% block extra_scripts %}
-<script>
-(function () {
-    const images = document.querySelectorAll('.hero-img');
-    const dots = document.querySelectorAll('.hero-dot');
-    let current = 0;
-    let interval;
-
-    function showImage(index) {
-        images.forEach(img => { img.style.opacity = '0'; });
-        dots.forEach(d => { const s = d.querySelector('span'); s.classList.remove('bg-white'); s.classList.add('bg-white/50'); });
-        images[index].style.opacity = '1';
-        const activeDot = dots[index].querySelector('span');
-        activeDot.classList.remove('bg-white/50');
-        activeDot.classList.add('bg-white');
-    }
-
-    function next() {
-        current = (current + 1) % images.length;
-        showImage(current);
-    }
-
-    function start() { interval = setInterval(next, 5000); }
-    function stop() { clearInterval(interval); }
-
-    dots.forEach((dot, index) => {
-        dot.addEventListener('click', () => { current = index; showImage(current); });
-    });
-
-    const hero = document.querySelector('.hero-img')?.parentElement;
-    if (hero) {
-        hero.addEventListener('mouseenter', stop);
-        hero.addEventListener('mouseleave', start);
-    }
-
-    start();
-})();
-</script>
 {% endblock %}
