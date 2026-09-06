@@ -517,8 +517,10 @@ class PortalEstudiantilTests(TestCase):
 
         self.assertIn('QUI-1', html)
         # FIS-1 sigue apareciendo en el Kardex, pero no debe listarse dos veces
-        # en la sección de "Estado de matrícula" del período activo.
-        idx_estado_matricula = html.index('Estado de matrícula')
+        # en la sección de "Estado de matrícula" del período activo. Se ancla
+        # al id de la sección, no al texto "Estado de matrícula": ese texto
+        # también aparece en el link del sidebar, que sale antes en el HTML.
+        idx_estado_matricula = html.index('id="estado-matricula"')
         self.assertNotIn('FIS-1', html[idx_estado_matricula:])
 
     def test_solicitar_certificado_crea_pendiente_sin_fecha(self):
