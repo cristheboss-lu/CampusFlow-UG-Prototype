@@ -8,7 +8,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
@@ -17,7 +17,7 @@
       extend: {
         colors: {
           navy: { DEFAULT: '#1B3A6B', light: '#2C5590', dark: '#122748' },
-          gold: { DEFAULT: '#F5A623', light: '#FDF1E0' },
+          gold: { DEFAULT: '#F5A623', light: '#FDF1E0', dark: '#B37500' },
         },
         fontFamily: { sans: ['Inter', 'sans-serif'] },
         borderRadius: { card: '16px' },
@@ -67,7 +67,7 @@
       </a>
       {% endif %}
 
-      <button class="md:hidden text-white" aria-label="Abrir menú" id="mobile-menu-btn">
+      <button class="md:hidden text-white" aria-label="Abrir menú" id="mobile-menu-btn" aria-expanded="false" aria-controls="mobile-menu">
         <i class="ti ti-menu-2 text-xl" aria-hidden="true"></i>
       </button>
     </div>
@@ -81,6 +81,11 @@
     <a href="https://www.scopus.com" target="_blank" rel="noopener" class="block px-3 py-2 rounded-lg hover:bg-white/10">Biblioteca</a>
     <a href="{% url 'admisiones' %}" class="block px-3 py-2 rounded-lg hover:bg-white/10">Admisiones</a>
     <a href="{% url 'contacto' %}" class="block px-3 py-2 rounded-lg hover:bg-white/10">Contacto</a>
+    {% if request.user.is_authenticated %}
+    <a href="{% url 'dashboard_estudiante' %}" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10">
+      <i class="ti ti-layout-dashboard" aria-hidden="true"></i> Mi panel
+    </a>
+    {% endif %}
   </nav>
 </header>
 
@@ -148,8 +153,10 @@
 </footer>
 
 <script>
-  document.getElementById('mobile-menu-btn')?.addEventListener('click', () => {
-    document.getElementById('mobile-menu')?.classList.toggle('hidden');
+  document.getElementById('mobile-menu-btn')?.addEventListener('click', function () {
+    const menu = document.getElementById('mobile-menu');
+    const isHidden = menu?.classList.toggle('hidden');
+    this.setAttribute('aria-expanded', isHidden ? 'false' : 'true');
   });
 </script>
 
