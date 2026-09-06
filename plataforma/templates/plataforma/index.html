@@ -32,26 +32,46 @@
 
 <!-- ============ FRANJA DE ACCESO RAPIDO ============ -->
 <section class="reveal max-w-7xl mx-auto px-4 md:px-8 pb-16 md:pb-24">
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
 
-        <a href="{% url 'aulas_virtuales' %}" class="bg-navy hover:bg-navy-light transition-colors rounded-card p-6 md:p-8 text-white flex flex-col gap-4">
-            <i class="ti ti-chalkboard text-3xl" aria-hidden="true"></i>
-            <span class="text-xl font-bold leading-tight">Aulas virtuales</span>
+        <a href="{% url 'aulas_virtuales' %}" class="lg:col-span-2 bg-navy hover:bg-navy-light transition-colors rounded-card p-6 md:p-8 text-white flex flex-col gap-4">
+            <div class="w-12 h-12 rounded-full bg-white/15 flex items-center justify-center">
+                <i class="ti ti-chalkboard text-2xl" aria-hidden="true"></i>
+            </div>
+            <div>
+                <span class="text-xl font-bold leading-tight block mb-1.5">Aulas virtuales</span>
+                <span class="text-sm text-white/75 leading-relaxed">Plataforma interactiva para clases en línea, recursos y seguimiento académico.</span>
+            </div>
         </a>
 
         <a href="{% url 'portal_estudiantil' %}" class="bg-navy-light hover:bg-navy transition-colors rounded-card p-6 md:p-8 text-white flex flex-col gap-4">
-            <i class="ti ti-user-circle text-3xl" aria-hidden="true"></i>
-            <span class="text-xl font-bold leading-tight">Portal estudiantil</span>
+            <div class="w-12 h-12 rounded-full bg-white/15 flex items-center justify-center">
+                <i class="ti ti-user-circle text-2xl" aria-hidden="true"></i>
+            </div>
+            <div>
+                <span class="text-xl font-bold leading-tight block mb-1.5">Portal estudiantil</span>
+                <span class="text-sm text-white/75 leading-relaxed">Calificaciones, horarios y solicitudes en un solo lugar.</span>
+            </div>
         </a>
 
         <a href="https://www.scopus.com" target="_blank" rel="noopener" class="bg-gold-dark hover:bg-gold-dark/90 transition-colors rounded-card p-6 md:p-8 text-white flex flex-col gap-4">
-            <i class="ti ti-books text-3xl" aria-hidden="true"></i>
-            <span class="text-xl font-bold leading-tight">Biblioteca</span>
+            <div class="w-12 h-12 rounded-full bg-white/15 flex items-center justify-center">
+                <i class="ti ti-books text-2xl" aria-hidden="true"></i>
+            </div>
+            <div>
+                <span class="text-xl font-bold leading-tight block mb-1.5">Biblioteca</span>
+                <span class="text-sm text-white/75 leading-relaxed">Recursos académicos digitales disponibles 24/7.</span>
+            </div>
         </a>
 
         <a href="{% url 'admisiones' %}" class="bg-gold hover:bg-gold/90 transition-colors rounded-card p-6 md:p-8 text-navy-dark flex flex-col gap-4">
-            <i class="ti ti-pencil text-3xl" aria-hidden="true"></i>
-            <span class="text-xl font-bold leading-tight">Admisiones</span>
+            <div class="w-12 h-12 rounded-full bg-navy-dark/10 flex items-center justify-center">
+                <i class="ti ti-pencil text-2xl" aria-hidden="true"></i>
+            </div>
+            <div>
+                <span class="text-xl font-bold leading-tight block mb-1.5">Admisiones</span>
+                <span class="text-sm text-navy-dark/70 leading-relaxed">Requisitos, convocatorias y asesoría estudiantil.</span>
+            </div>
         </a>
 
     </div>
